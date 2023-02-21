@@ -1,2 +1,2 @@
-# leadtime
-leadtime - cli command that caluculate PR lead time statistics on GitHub
+# [WIP] leadtime - caluculate PR lead time statistics on GitHub
+leedtime is a command that outputs statistics about the time it takes for a GitHub Pull Request to be merged. 

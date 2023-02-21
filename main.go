@@ -1,3 +1,4 @@
+// Package main is leadtime command entrypoint.
 package main
 
 import "fmt"
