@@ -113,7 +113,7 @@ func TestListRepositories(t *testing.T) {
 		// test start
 		_, err = client.ListRepositories(ctx)
 		if err == nil {
-			t.Fatal("expect error occured, however got nil")
+			t.Fatal("expect error occurred, however got nil")
 		}
 
 		apiErr, ok := err.(*APIError)
@@ -164,7 +164,7 @@ func TestListRepositories(t *testing.T) {
 		// test start
 		_, err = client.ListRepositories(ctx)
 		if err == nil {
-			t.Fatal("expect error occured, however got nil")
+			t.Fatal("expect error occurred, however got nil")
 		}
 
 		apiErr, ok := err.(*APIError)
