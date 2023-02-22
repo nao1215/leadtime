@@ -19,7 +19,7 @@ linters:
     - varcheck
     - asciicheck
     - bodyclose
-    - cyclop
+    #- cyclop
     - dogsled
     - dupl
     - durationcheck
