@@ -22,6 +22,7 @@ func NewClient(token string) *Client {
 		&oauth2.Token{AccessToken: token},
 	)
 	client := oauth2.NewClient(context.Background(), tokenSource)
+
 	return &Client{client: github.NewClient(client)}
 }
 
@@ -46,5 +47,6 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 		}
 		repoList = append(repoList, repo)
 	}
+
 	return repoList, nil
 }
