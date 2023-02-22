@@ -25,7 +25,7 @@ linters:
     - durationcheck
     - errorlint
     - exhaustive
-    - exhaustivestruct
+    #- exhaustivestruct
     - exportloopref
     - forcetypeassert
     - funlen
