@@ -28,7 +28,7 @@ linters:
     #- exhaustivestruct
     - exportloopref
     - forcetypeassert
-    - funlen
+    # - funlen
     - gci
     - gochecknoglobals
     - gochecknoinits
