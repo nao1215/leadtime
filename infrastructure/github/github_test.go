@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -47,7 +48,9 @@ func TestListRepositories(t *testing.T) {
 				t.Fatal(err)
 			}
 			w.WriteHeader(http.StatusOK)
-			w.Write(respBody)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer testServer.Close()
 
@@ -97,7 +100,9 @@ func TestListRepositories(t *testing.T) {
 		// Test server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("error message"))
+			if _, err := w.Write([]byte("error message")); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer testServer.Close()
 
@@ -116,11 +121,12 @@ func TestListRepositories(t *testing.T) {
 			t.Fatal("expect error occurred, however got nil")
 		}
 
-		apiErr, ok := err.(*APIError)
-		if !ok {
-			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, apiErr)
+		var apiError *APIError
+		if !errors.As(err, &apiError) {
+			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
+		apiErr := err.(*APIError)
 		if apiErr.StatusCode != http.StatusInternalServerError {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusInternalServerError)
 		}
@@ -148,7 +154,9 @@ func TestListRepositories(t *testing.T) {
 				t.Fatal(err)
 			}
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write(respBody)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
 		}))
 		defer testServer.Close()
 
@@ -167,11 +175,12 @@ func TestListRepositories(t *testing.T) {
 			t.Fatal("expect error occurred, however got nil")
 		}
 
-		apiErr, ok := err.(*APIError)
-		if !ok {
-			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, apiErr)
+		var apiError *APIError
+		if !errors.As(err, &apiError) {
+			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
+		apiErr := err.(*APIError)
 		if apiErr.StatusCode != http.StatusUnauthorized {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusUnauthorized)
 		}

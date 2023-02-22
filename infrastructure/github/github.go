@@ -30,7 +30,9 @@ func NewClient(token string) *Client {
 func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, error) {
 	repos, resp, err := c.client.Repositories.List(ctx, "", nil)
 	if resp != nil {
-		defer resp.Body.Close()
+		defer func() error {
+			return resp.Body.Close()
+		}()
 	}
 	if err != nil {
 		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to gey repository list"}
