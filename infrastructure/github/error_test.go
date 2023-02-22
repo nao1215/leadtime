@@ -6,6 +6,8 @@ import (
 )
 
 func TestAPIError_Error(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		StatusCode int
 		Message    string
@@ -25,7 +27,10 @@ func TestAPIError_Error(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			e := &APIError{
 				StatusCode: tt.fields.StatusCode,
 				Message:    tt.fields.Message,
