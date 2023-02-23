@@ -4,6 +4,7 @@ package github
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/go-github/v50/github"
 	"github.com/nao1215/leadtime/domain/model"
@@ -31,7 +32,10 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 	repos, resp, err := c.client.Repositories.List(ctx, "", nil)
 	if resp != nil {
 		defer func() error {
-			return resp.Body.Close()
+			if err != resp.Body.Close() {
+				return fmt.Errorf("failed to close response body: %w", err)
+			}
+			return nil
 		}()
 	}
 	if err != nil {
