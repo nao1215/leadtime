@@ -190,12 +190,14 @@ func TestListRepositories(t *testing.T) {
 func TestClient_ListPullRequests(t *testing.T) {
 	t.Parallel()
 
+	const apiURL = "/repos/owner/repo/pulls"
+
 	t.Run("Get PR list", func(t *testing.T) {
 		t.Parallel()
 
 		now := time.Date(2023, 2, 24, 12, 34, 56, 0, time.UTC)
 		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			wantURL := "/repos/owner/repo/pulls"
+			wantURL := apiURL
 			if wantURL != req.URL.Path {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
@@ -318,7 +320,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 		ctx := context.Background()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			wantURL := "/repos/owner/repo/pulls"
+			wantURL := apiURL
 			if wantURL != req.URL.Path {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
@@ -369,7 +371,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 		ctx := context.Background()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			wantURL := "/repos/owner/repo/pulls"
+			wantURL := apiURL
 			if wantURL != req.URL.Path {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
