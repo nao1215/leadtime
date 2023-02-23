@@ -89,6 +89,30 @@ func (c *Client) ListPullRequests(ctx context.Context, owner, repo string) ([]*m
 	return pullReqs, nil
 }
 
+// ListCommitsInPR return List the commits in the PR.
+func (c *Client) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
+	commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, nil)
+	if resp != nil {
+		defer func() error {
+			if err := resp.Body.Close(); err != nil {
+				return fmt.Errorf("failed to close response body: %w", err)
+			}
+
+			return nil
+		}()
+	}
+	if err != nil {
+		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
+	}
+
+	commitsInPR := make([]*model.Commit, 0)
+	for _, v := range commits {
+		commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+	}
+
+	return commitsInPR, nil
+}
+
 // toDomainModelPR convert *github.PullRequest to *model.PullRequest
 func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
 	var createdAt *model.Timestamp
@@ -135,4 +159,36 @@ func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
 	}
 
 	return pr
+}
+
+// toDomainModelCommit convert *github.RepositoryCommit to *model.Commit.
+func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
+	var author *model.User
+	if commit.Author != nil {
+		author = &model.User{
+			Name: commit.Author.Name,
+		}
+	}
+
+	var committer *model.User
+	if commit.Committer != nil {
+		committer = &model.User{
+			Name: commit.Committer.Name,
+		}
+	}
+
+	var date *model.Timestamp
+	if commit.Commit != nil && commit.Commit.Committer != nil {
+		date = &model.Timestamp{
+			Time: commit.Commit.Committer.GetDate().Time,
+		}
+	}
+
+	domainModelCommit := &model.Commit{
+		Author:    author,
+		Committer: committer,
+		Date:      date,
+	}
+
+	return domainModelCommit
 }

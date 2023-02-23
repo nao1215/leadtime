@@ -421,6 +421,201 @@ func TestClient_ListPullRequests(t *testing.T) {
 	})
 }
 
+func TestClient_ListCommitsInPR(t *testing.T) {
+	t.Parallel()
+
+	const apiURL = "/repos/owner/repo/pulls/123/commits"
+	now := time.Date(2023, 2, 24, 12, 34, 56, 0, time.UTC)
+
+	t.Run("Get all commit in the PR", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+
+			respBody, err := json.Marshal([]github.RepositoryCommit{
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{Time: now},
+						},
+					},
+					Author: &github.User{
+						Name: github.String("author1"),
+					},
+					Committer: &github.User{
+						Name: github.String("comitter1"),
+					},
+				},
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{Time: now},
+						},
+					},
+					Author: &github.User{
+						Name: github.String("author2"),
+					},
+					Committer: &github.User{
+						Name: github.String("comitter2"),
+					},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			w.WriteHeader(http.StatusOK)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		token := "token"
+		client := NewClient(token)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.client.BaseURL = testURL
+		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
+			client.client.BaseURL.Path += "/"
+		}
+
+		wantCommits := []*model.Commit{
+			{
+				Author:    &model.User{Name: github.String("author1")},
+				Committer: &model.User{Name: github.String("comitter1")},
+				Date:      &model.Timestamp{Time: now},
+			},
+			{
+				Author:    &model.User{Name: github.String("author2")},
+				Committer: &model.User{Name: github.String("comitter2")},
+				Date:      &model.Timestamp{Time: now},
+			},
+		}
+		gotCommits, err := client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if diff := cmp.Diff(wantCommits, gotCommits); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("Return status code 500 from GitHub", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+			w.WriteHeader(http.StatusInternalServerError)
+			if _, err := w.Write([]byte("error message")); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		token := "token"
+		client := NewClient(token)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.client.BaseURL = testURL
+		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
+			client.client.BaseURL.Path += "/"
+		}
+
+		_, err = client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		if err == nil {
+			t.Fatal("expect error occurred, however got nil")
+		}
+
+		var apiError *APIError
+		if !errors.As(err, &apiError) {
+			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
+		}
+
+		apiErr := err.(*APIError) //nolint
+		if apiErr.StatusCode != http.StatusInternalServerError {
+			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusInternalServerError)
+		}
+	})
+
+	t.Run("Return status code 401 from GitHub", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+			respBody, err := json.Marshal([]github.PullRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			w.WriteHeader(http.StatusUnauthorized)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		token := "bad_token"
+		client := NewClient(token)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.client.BaseURL = testURL
+		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
+			client.client.BaseURL.Path += "/"
+		}
+
+		_, err = client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		if err == nil {
+			t.Fatal("expect error occurred, however got nil")
+		}
+
+		var apiError *APIError
+		if !errors.As(err, &apiError) {
+			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
+		}
+
+		apiErr := err.(*APIError) //nolint
+		if apiErr.StatusCode != http.StatusUnauthorized {
+			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusUnauthorized)
+		}
+	})
+}
+
 func Test_toDomainModelPR(t *testing.T) {
 	t.Parallel()
 
@@ -506,6 +701,56 @@ func Test_toDomainModelPR(t *testing.T) {
 			t.Parallel()
 
 			got := toDomainModelPR(tt.githubPR)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func Test_toDomainModelCommit(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2023, 2, 24, 12, 34, 56, 0, time.UTC)
+
+	tests := []struct {
+		name   string
+		commit *github.RepositoryCommit
+		want   *model.Commit
+	}{
+		{
+			name:   "PR without commit",
+			commit: &github.RepositoryCommit{},
+			want:   &model.Commit{},
+		},
+		{
+			name: "convert git commit to domain model commit",
+			commit: &github.RepositoryCommit{
+				Commit: &github.Commit{
+					Committer: &github.CommitAuthor{
+						Date: &github.Timestamp{Time: now},
+					},
+				},
+				Author: &github.User{
+					Name: github.String("author"),
+				},
+				Committer: &github.User{
+					Name: github.String("comitter"),
+				},
+			},
+			want: &model.Commit{
+				Author:    &model.User{Name: github.String("author")},
+				Committer: &model.User{Name: github.String("comitter")},
+				Date:      &model.Timestamp{Time: now},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := toDomainModelCommit(tt.commit)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}

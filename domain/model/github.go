@@ -55,3 +55,13 @@ type PullRequest struct {
 	// ChangedFiles is number of changed files
 	ChangedFiles *int
 }
+
+// Commit is git commit information
+type Commit struct {
+	// Author is author user
+	Author *User
+	// Committer is commiter user
+	Committer *User
+	// Date is commit date
+	Date *Timestamp
+}
