@@ -36,7 +36,7 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 				return fmt.Errorf("failed to close response body: %w", err)
 			}
 
-			return nil
+			return nil // nolint
 		}()
 	}
 	if err != nil {
@@ -74,7 +74,7 @@ func (c *Client) ListPullRequests(ctx context.Context, owner, repo string) ([]*m
 				return fmt.Errorf("failed to close response body: %w", err)
 			}
 
-			return nil
+			return nil // nolint
 		}()
 	}
 	if err != nil {
