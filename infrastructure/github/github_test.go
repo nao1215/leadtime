@@ -424,7 +424,10 @@ func TestClient_ListPullRequests(t *testing.T) {
 func TestClient_ListCommitsInPR(t *testing.T) {
 	t.Parallel()
 
-	const apiURL = "/repos/owner/repo/pulls/123/commits"
+	const (
+		apiURL = "/repos/owner/repo/pulls/123/commits"
+		token  = "token"
+	)
 	now := time.Date(2023, 2, 24, 12, 34, 56, 0, time.UTC)
 
 	t.Run("Get all commit in the PR", func(t *testing.T) {
@@ -479,7 +482,6 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		}))
 		defer testServer.Close()
 
-		token := "token"
 		client := NewClient(token)
 		ctx := context.Background()
 
@@ -533,7 +535,6 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		}))
 		defer testServer.Close()
 
-		token := "token"
 		client := NewClient(token)
 		ctx := context.Background()
 
@@ -586,7 +587,6 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		}))
 		defer testServer.Close()
 
-		token := "bad_token"
 		client := NewClient(token)
 		ctx := context.Background()
 
