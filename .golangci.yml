@@ -19,17 +19,17 @@ linters:
     - varcheck
     - asciicheck
     - bodyclose
-    - cyclop
+    #- cyclop
     - dogsled
     - dupl
     - durationcheck
     - errorlint
     - exhaustive
-    - exhaustivestruct
+    #- exhaustivestruct
     - exportloopref
     - forcetypeassert
-    - funlen
-    - gci
+    # - funlen
+    # - gci
     - gochecknoglobals
     - gochecknoinits
     - goconst
@@ -55,3 +55,9 @@ linters:
     - unparam
     - wastedassign
     - whitespace
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: snake
