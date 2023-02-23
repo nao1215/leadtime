@@ -307,6 +307,9 @@ func TestClient_ListPullRequests(t *testing.T) {
 			},
 		}
 		gotPRs, err := client.ListPullRequests(ctx, "owner", "repo")
+		if err != nil {
+			t.Fatal(err)
+		}
 		if diff := cmp.Diff(wantPRs, gotPRs); diff != "" {
 			t.Errorf("mismatch (-want +got):\n%s", diff)
 		}
