@@ -40,14 +40,21 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 		}()
 	}
 	if err != nil {
-		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to gey repository list"}
+		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get repository list"}
 	}
 
 	repoList := make([]*model.Repository, 0)
 	for _, v := range repos {
+		var user *model.User
+		if v.Owner != nil {
+			user = &model.User{
+				Name: v.Owner.Name,
+			}
+		}
+
 		repo := &model.Repository{
 			ID:          v.ID,
-			Owner:       &model.User{Name: v.Owner.Name},
+			Owner:       user,
 			Name:        v.Name,
 			FullName:    v.FullName,
 			Description: v.Description,
@@ -56,4 +63,132 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 	}
 
 	return repoList, nil
+}
+
+// ListPullRequests return List the pull requests.
+func (c *Client) ListPullRequests(ctx context.Context, owner, repo string) ([]*model.PullRequest, error) {
+	prs, resp, err := c.client.PullRequests.List(ctx, owner, repo, &github.PullRequestListOptions{})
+	if resp != nil {
+		defer func() error {
+			if err := resp.Body.Close(); err != nil {
+				return fmt.Errorf("failed to close response body: %w", err)
+			}
+
+			return nil
+		}()
+	}
+	if err != nil {
+		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get pull request list"}
+	}
+
+	pullReqs := make([]*model.PullRequest, 0)
+	for _, v := range prs {
+		pullReqs = append(pullReqs, toDomainModelPR(v))
+	}
+
+	return pullReqs, nil
+}
+
+// ListCommitsInPR return List the commits in the PR.
+func (c *Client) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
+	commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, nil)
+	if resp != nil {
+		defer func() error {
+			if err := resp.Body.Close(); err != nil {
+				return fmt.Errorf("failed to close response body: %w", err)
+			}
+
+			return nil
+		}()
+	}
+	if err != nil {
+		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
+	}
+
+	commitsInPR := make([]*model.Commit, 0)
+	for _, v := range commits {
+		commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+	}
+
+	return commitsInPR, nil
+}
+
+// toDomainModelPR convert *github.PullRequest to *model.PullRequest
+func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
+	var createdAt *model.Timestamp
+	if githubPR.ClosedAt != nil {
+		createdAt = &model.Timestamp{
+			Time: githubPR.ClosedAt.Time,
+		}
+	}
+
+	var closedAt *model.Timestamp
+	if githubPR.ClosedAt != nil {
+		closedAt = &model.Timestamp{
+			Time: githubPR.ClosedAt.Time,
+		}
+	}
+
+	var mergedAt *model.Timestamp
+	if githubPR.MergedAt != nil {
+		mergedAt = &model.Timestamp{
+			Time: githubPR.MergedAt.Time,
+		}
+	}
+
+	var user *model.User
+	if githubPR.User != nil {
+		user = &model.User{
+			Name: githubPR.User.Name,
+		}
+	}
+
+	pr := &model.PullRequest{
+		ID:           githubPR.ID,
+		Number:       githubPR.Number,
+		State:        githubPR.State,
+		Title:        githubPR.Title,
+		CreatedAt:    createdAt,
+		ClosedAt:     closedAt,
+		MergedAt:     mergedAt,
+		User:         user,
+		Comments:     githubPR.Comments,
+		Additions:    githubPR.Additions,
+		Deletions:    githubPR.Deletions,
+		ChangedFiles: githubPR.ChangedFiles,
+	}
+
+	return pr
+}
+
+// toDomainModelCommit convert *github.RepositoryCommit to *model.Commit.
+func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
+	var author *model.User
+	if commit.Author != nil {
+		author = &model.User{
+			Name: commit.Author.Name,
+		}
+	}
+
+	var committer *model.User
+	if commit.Committer != nil {
+		committer = &model.User{
+			Name: commit.Committer.Name,
+		}
+	}
+
+	var date *model.Timestamp
+	if commit.Commit != nil && commit.Commit.Committer != nil {
+		date = &model.Timestamp{
+			Time: commit.Commit.Committer.GetDate().Time,
+		}
+	}
+
+	domainModelCommit := &model.Commit{
+		Author:    author,
+		Committer: committer,
+		Date:      date,
+	}
+
+	return domainModelCommit
 }

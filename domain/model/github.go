@@ -1,6 +1,8 @@
 // Package model is domain model and business logic.
 package model
 
+import "time"
+
 // Repository represents GitHub repository information
 type Repository struct {
 	// ID is repository id
@@ -19,4 +21,47 @@ type Repository struct {
 type User struct {
 	// Name is user name.
 	Name *string `json:"name,omitempty"`
+}
+
+// Timestamp represents a time.
+type Timestamp struct {
+	Time time.Time
+}
+
+// PullRequest represents a GitHub pull request on a repository.
+type PullRequest struct {
+	// ID is PR's id.
+	ID *int64
+	// Number is PR number
+	Number *int
+	// State is PR state(e.g. closed)
+	State *string
+	// Title is PR title
+	Title *string
+	// CreatedAt is date of PR creation
+	CreatedAt *Timestamp
+	// ClosedAt is date of PR close
+	ClosedAt *Timestamp
+	// MergedAt is date of PR merged
+	MergedAt *Timestamp
+	// User is user information
+	User *User
+	// Comments is PR comment count
+	Comments *int
+	// Additions is number of addition lines
+	Additions *int
+	// Deletions is number of deletions line
+	Deletions *int
+	// ChangedFiles is number of changed files
+	ChangedFiles *int
+}
+
+// Commit is git commit information
+type Commit struct {
+	// Author is author user
+	Author *User
+	// Committer is commiter user
+	Committer *User
+	// Date is commit date
+	Date *Timestamp
 }
