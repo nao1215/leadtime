@@ -200,7 +200,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
 
-			wantHTTPMethod := "GET"
+			wantHTTPMethod := http.MethodGet
 			if wantHTTPMethod != req.Method {
 				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
 			}
@@ -323,7 +323,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
 
-			wantHTTPMethod := "GET"
+			wantHTTPMethod := http.MethodGet
 			if wantHTTPMethod != req.Method {
 				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
 			}
@@ -374,7 +374,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
 			}
 
-			wantHTTPMethod := "GET"
+			wantHTTPMethod := http.MethodGet
 			if wantHTTPMethod != req.Method {
 				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
 			}
