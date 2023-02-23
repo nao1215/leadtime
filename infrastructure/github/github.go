@@ -32,9 +32,10 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 	repos, resp, err := c.client.Repositories.List(ctx, "", nil)
 	if resp != nil {
 		defer func() error {
-			if err != resp.Body.Close() {
+			if err := resp.Body.Close(); err != nil {
 				return fmt.Errorf("failed to close response body: %w", err)
 			}
+
 			return nil
 		}()
 	}
