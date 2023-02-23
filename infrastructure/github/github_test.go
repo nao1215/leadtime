@@ -126,7 +126,7 @@ func TestListRepositories(t *testing.T) {
 			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
-		apiErr := err.(*APIError) // nolint
+		apiErr := err.(*APIError) //nolint
 		if apiErr.StatusCode != http.StatusInternalServerError {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusInternalServerError)
 		}
@@ -180,7 +180,7 @@ func TestListRepositories(t *testing.T) {
 			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
-		apiErr := err.(*APIError) // nolint
+		apiErr := err.(*APIError) //nolint
 		if apiErr.StatusCode != http.StatusUnauthorized {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusUnauthorized)
 		}
@@ -360,7 +360,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
-		apiErr := err.(*APIError) // nolint
+		apiErr := err.(*APIError) //nolint
 		if apiErr.StatusCode != http.StatusInternalServerError {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusInternalServerError)
 		}
@@ -414,7 +414,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 			t.Fatalf("mismatch expect=%T, got=%T", &APIError{}, err)
 		}
 
-		apiErr := err.(*APIError) // nolint
+		apiErr := err.(*APIError) //nolint
 		if apiErr.StatusCode != http.StatusUnauthorized {
 			t.Errorf("mismatch expect=%d, got=%d", apiErr.StatusCode, http.StatusUnauthorized)
 		}
