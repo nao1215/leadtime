@@ -3,6 +3,13 @@ package model
 
 import "time"
 
+// Token is token (e.g. github access token)
+type Token string
+
+func (t Token) String() string {
+	return string(t)
+}
+
 // Repository represents GitHub repository information
 type Repository struct {
 	// ID is repository id

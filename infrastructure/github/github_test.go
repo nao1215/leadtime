@@ -22,8 +22,9 @@ func TestListRepositories(t *testing.T) {
 	t.Run("Get repository list", func(t *testing.T) {
 		t.Parallel()
 
-		token := "good_token"
+		token := model.Token("good_token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		// Test server
@@ -58,9 +59,9 @@ func TestListRepositories(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		want := []*model.Repository{
@@ -80,7 +81,7 @@ func TestListRepositories(t *testing.T) {
 			},
 		}
 		// test start
-		got, err := client.ListRepositories(ctx)
+		got, err := repo.ListRepositories(ctx)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -93,8 +94,9 @@ func TestListRepositories(t *testing.T) {
 	t.Run("Return status code 500 from GitHub", func(t *testing.T) {
 		t.Parallel()
 
-		token := "test_token"
+		token := model.Token("test_token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		// Test server
@@ -110,13 +112,13 @@ func TestListRepositories(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		// test start
-		_, err = client.ListRepositories(ctx)
+		_, err = repo.ListRepositories(ctx)
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}
@@ -135,8 +137,9 @@ func TestListRepositories(t *testing.T) {
 	t.Run("Return status code 401 from GitHub", func(t *testing.T) {
 		t.Parallel()
 
-		token := "bad_token"
+		token := model.Token("bad_token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		// Test server
@@ -164,13 +167,13 @@ func TestListRepositories(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		// test start
-		_, err = client.ListRepositories(ctx)
+		_, err = repo.ListRepositories(ctx)
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}
@@ -263,17 +266,18 @@ func TestClient_ListPullRequests(t *testing.T) {
 		}))
 		defer testServer.Close()
 
-		token := "token"
+		token := model.Token("token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testURL, err := url.Parse(testServer.URL)
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		wantPRs := []*model.PullRequest{
@@ -306,7 +310,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 				ChangedFiles: github.Int(1),
 			},
 		}
-		gotPRs, err := client.ListPullRequests(ctx, "owner", "repo")
+		gotPRs, err := repo.ListPullRequests(ctx, "owner", "repo")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -318,8 +322,9 @@ func TestClient_ListPullRequests(t *testing.T) {
 	t.Run("Return status code 500 from GitHub", func(t *testing.T) {
 		t.Parallel()
 
-		token := "test_token"
+		token := model.Token("test_token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -344,13 +349,13 @@ func TestClient_ListPullRequests(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		// test start
-		_, err = client.ListPullRequests(ctx, "owner", "repo")
+		_, err = repo.ListPullRequests(ctx, "owner", "repo")
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}
@@ -369,8 +374,9 @@ func TestClient_ListPullRequests(t *testing.T) {
 	t.Run("Return status code 401 from GitHub", func(t *testing.T) {
 		t.Parallel()
 
-		token := "bad_token"
+		token := model.Token("bad_token")
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -398,13 +404,13 @@ func TestClient_ListPullRequests(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		// test start
-		_, err = client.ListPullRequests(ctx, "owner", "repo")
+		_, err = repo.ListPullRequests(ctx, "owner", "repo")
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}
@@ -483,15 +489,16 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		defer testServer.Close()
 
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testURL, err := url.Parse(testServer.URL)
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
 		wantCommits := []*model.Commit{
@@ -506,7 +513,7 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 				Date:      &model.Timestamp{Time: now},
 			},
 		}
-		gotCommits, err := client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		gotCommits, err := repo.ListCommitsInPR(ctx, "owner", "repo", 123)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -536,18 +543,19 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		defer testServer.Close()
 
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testURL, err := url.Parse(testServer.URL)
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
-		_, err = client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		_, err = repo.ListCommitsInPR(ctx, "owner", "repo", 123)
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}
@@ -588,18 +596,19 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 		defer testServer.Close()
 
 		client := NewClient(token)
+		repo := NewGitHubRepository(client)
 		ctx := context.Background()
 
 		testURL, err := url.Parse(testServer.URL)
 		if err != nil {
 			t.Fatal(err)
 		}
-		client.client.BaseURL = testURL
-		if !strings.HasSuffix(client.client.BaseURL.Path, "/") {
-			client.client.BaseURL.Path += "/"
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
 		}
 
-		_, err = client.ListCommitsInPR(ctx, "owner", "repo", 123)
+		_, err = repo.ListCommitsInPR(ctx, "owner", "repo", 123)
 		if err == nil {
 			t.Fatal("expect error occurred, however got nil")
 		}

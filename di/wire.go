@@ -1,0 +1,42 @@
+//go:build wireinject
+// +build wireinject
+
+// Pacakge di Inject dependence by wire command.
+package di
+
+import (
+	"github.com/google/wire"
+	"github.com/nao1215/leadtime/config"
+	"github.com/nao1215/leadtime/domain/service"
+	"github.com/nao1215/leadtime/domain/usecase"
+	"github.com/nao1215/leadtime/infrastructure/github"
+)
+
+//go:generate wire
+
+// LeadTime is usecase set.
+type LeadTime struct {
+	GithubConfig       *config.GitHubConfig
+	PullRequestUsecase usecase.PullRequestUsecase
+}
+
+// newLeadTime initialize LeadTime struct
+func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase) *LeadTime {
+	return &LeadTime{
+		GithubConfig:       githubConfig,
+		PullRequestUsecase: pullRequestUsecase,
+	}
+}
+
+func NewLeadTime() (*LeadTime, error) {
+	wire.Build(
+		config.NewGitHubConfig,
+		config.NewGitHubAccessToken,
+		usecase.NewPullRequestUsecase,
+		service.NewPullRequestService,
+		github.NewClient,
+		github.NewGitHubRepository,
+		newLeadTime,
+	)
+	return &LeadTime{}, nil
+}
