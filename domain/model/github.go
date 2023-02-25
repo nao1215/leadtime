@@ -68,6 +68,7 @@ func (pr *PullRequest) IsClosed() bool {
 	if pr.State == nil {
 		return false
 	}
+
 	return *pr.State == "closed"
 }
 
