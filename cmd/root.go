@@ -17,6 +17,7 @@ func newRootCmd() *cobra.Command {
 func Execute() int {
 	rootCmd := newRootCmd()
 	rootCmd.AddCommand(newStatCmd())
+	rootCmd.AddCommand(newVersionCmd())
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	if err := rootCmd.Execute(); err != nil {
