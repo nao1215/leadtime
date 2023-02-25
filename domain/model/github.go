@@ -3,6 +3,13 @@ package model
 
 import "time"
 
+// Token is token (e.g. github access token)
+type Token string
+
+func (t Token) String() string {
+	return string(t)
+}
+
 // Repository represents GitHub repository information
 type Repository struct {
 	// ID is repository id
@@ -54,6 +61,15 @@ type PullRequest struct {
 	Deletions *int
 	// ChangedFiles is number of changed files
 	ChangedFiles *int
+}
+
+// IsClosed check whether pull request is closed or not.
+func (pr *PullRequest) IsClosed() bool {
+	if pr.State == nil {
+		return false
+	}
+
+	return *pr.State == "closed"
 }
 
 // Commit is git commit information

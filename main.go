@@ -1,8 +1,15 @@
 // Package main is leadtime command entrypoint.
 package main
 
-import "fmt"
+import (
+	"os"
+
+	"github.com/nao1215/leadtime/cmd"
+)
+
+// osExit is wrapper for  os.Exit(). It's for unit test.
+var osExit = os.Exit //nolint
 
 func main() {
-	fmt.Println("dummy")
+	osExit(cmd.Execute())
 }

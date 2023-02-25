@@ -38,7 +38,7 @@ linters:
     - gomnd
     - gosec
     - ifshort
-    - lll
+    #- lll
     - misspell
     - nakedret
     - nlreturn

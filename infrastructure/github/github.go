@@ -8,27 +8,37 @@ import (
 
 	"github.com/google/go-github/v50/github"
 	"github.com/nao1215/leadtime/domain/model"
+	"github.com/nao1215/leadtime/domain/repository"
 	"golang.org/x/oauth2"
 )
 
 // Client is http client for GitHub API.
 type Client struct {
-	// client is http client
-	client *github.Client
+	*github.Client
 }
 
 // NewClient return http client for GitHub API.
-func NewClient(token string) *Client {
+func NewClient(token model.Token) *Client {
 	tokenSource := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: token.String()},
 	)
 	client := oauth2.NewClient(context.Background(), tokenSource)
 
-	return &Client{client: github.NewClient(client)}
+	return &Client{Client: github.NewClient(client)}
+}
+
+// GitHubRepository is http client for GitHub API
+type GitHubRepository struct {
+	client *Client
+}
+
+// NewGitHubRepository initialize repository.GitHubRepository
+func NewGitHubRepository(client *Client) repository.GitHubRepository {
+	return &GitHubRepository{client: client}
 }
 
 // ListRepositories return List the repositories for a user.
-func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, error) {
+func (c *GitHubRepository) ListRepositories(ctx context.Context) ([]*model.Repository, error) {
 	repos, resp, err := c.client.Repositories.List(ctx, "", nil)
 	if resp != nil {
 		defer func() error {
@@ -66,48 +76,73 @@ func (c *Client) ListRepositories(ctx context.Context) ([]*model.Repository, err
 }
 
 // ListPullRequests return List the pull requests.
-func (c *Client) ListPullRequests(ctx context.Context, owner, repo string) ([]*model.PullRequest, error) {
-	prs, resp, err := c.client.PullRequests.List(ctx, owner, repo, &github.PullRequestListOptions{})
-	if resp != nil {
-		defer func() error {
-			if err := resp.Body.Close(); err != nil {
-				return fmt.Errorf("failed to close response body: %w", err)
-			}
-
-			return nil
-		}()
-	}
-	if err != nil {
-		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get pull request list"}
-	}
+func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo string) ([]*model.PullRequest, error) {
+	const pagingLimit = 20
 
 	pullReqs := make([]*model.PullRequest, 0)
-	for _, v := range prs {
-		pullReqs = append(pullReqs, toDomainModelPR(v))
+	opts := &github.PullRequestListOptions{
+		State:       "all",
+		ListOptions: github.ListOptions{PerPage: pagingLimit},
+	}
+
+	for {
+		prs, resp, err := c.client.PullRequests.List(ctx, owner, repo, opts)
+		if resp != nil {
+			defer func() error {
+				if err := resp.Body.Close(); err != nil {
+					return fmt.Errorf("failed to close response body: %w", err)
+				}
+
+				return nil
+			}()
+		}
+		if err != nil {
+			return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get pull request list"}
+		}
+
+		for _, v := range prs {
+			pullReqs = append(pullReqs, toDomainModelPR(v))
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.ListOptions.Page = resp.NextPage
 	}
 
 	return pullReqs, nil
 }
 
 // ListCommitsInPR return List the commits in the PR.
-func (c *Client) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
-	commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, nil)
-	if resp != nil {
-		defer func() error {
-			if err := resp.Body.Close(); err != nil {
-				return fmt.Errorf("failed to close response body: %w", err)
-			}
+// oreder is newest to oldest.
+func (c *GitHubRepository) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
+	const pagingLimit = 20
 
-			return nil
-		}()
-	}
-	if err != nil {
-		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
-	}
+	opts := &github.ListOptions{PerPage: pagingLimit}
 
 	commitsInPR := make([]*model.Commit, 0)
-	for _, v := range commits {
-		commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+	for {
+		commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, opts)
+		if resp != nil {
+			defer func() error {
+				if err := resp.Body.Close(); err != nil {
+					return fmt.Errorf("failed to close response body: %w", err)
+				}
+
+				return nil
+			}()
+		}
+		if err != nil {
+			return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
+		}
+
+		for _, v := range commits {
+			commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+		}
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 
 	return commitsInPR, nil
