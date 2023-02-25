@@ -1,4 +1,4 @@
-project_name: trash
+project_name: leadtime
 env:
   - GO111MODULE=on
 before:
@@ -13,8 +13,8 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-    goarch:
-      - amd64
+      - windows
+      - darwin
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     replacements:
