@@ -17,13 +17,10 @@ If you not specify repository name, leadtime command list up repository.
 If you sepcify repository, leadtime command list up pull requests in the
 repository.`,
 	Example: "  leadtime list --owner=nao1215 --repo=leadtime",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return list(cmd, args)
-	},
+	RunE:    list,
 }
 
-// nolint
-func init() {
+func init() { //nolint
 	/*
 		listCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
 		listCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
