@@ -9,17 +9,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var statCmd = &cobra.Command{ //nolint
-	Use:   "stat",
-	Short: "Print GitHub pull request leadtime statics",
-	Long:  `Print GitHub pull request leadtime statics`,
-	RunE:  stat,
-}
+func newStatCmd() *cobra.Command {
+	statCmd := &cobra.Command{
+		Use:   "stat",
+		Short: "Print GitHub pull request leadtime statics",
+		Long: `Print GitHub pull request leadtime statics.
 
-func init() { //nolint
+leadtime calculates statistics for PRs already in Closed/Merged status.`,
+		Example: "  LT_GITHUB_ACCESS_TOKEN=XXX leadtime stat --owner=nao1215 --repo=sqly",
+		RunE:    stat,
+	}
+
 	statCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
 	statCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
-	rootCmd.AddCommand(statCmd)
+
+	return statCmd
 }
 
 func stat(cmd *cobra.Command, args []string) error { //nolint
