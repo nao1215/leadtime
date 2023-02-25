@@ -9,9 +9,9 @@ import (
 
 var (
 	// Version value is set by ldflags
-	Version string
+	Version string //nolint
 	// Name is cli command name
-	Name = "leadtime"
+	Name = "leadtime" //nolint
 )
 
 // getVersion return gup command version.
