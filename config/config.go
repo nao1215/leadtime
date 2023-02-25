@@ -20,6 +20,7 @@ func NewGitHubConfig() (*GitHubConfig, error) {
 	if err := env.Parse(cfg); err != nil {
 		return nil, ErrNotSetGitHubAccessToken
 	}
+
 	return cfg, nil
 }
 

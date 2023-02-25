@@ -77,11 +77,12 @@ func (c *GitHubRepository) ListRepositories(ctx context.Context) ([]*model.Repos
 
 // ListPullRequests return List the pull requests.
 func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo string) ([]*model.PullRequest, error) {
+	const pagingLimit = 20
 
 	pullReqs := make([]*model.PullRequest, 0)
 	opts := &github.PullRequestListOptions{
 		State:       "all",
-		ListOptions: github.ListOptions{PerPage: 20},
+		ListOptions: github.ListOptions{PerPage: pagingLimit},
 	}
 
 	for {
@@ -115,7 +116,9 @@ func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo str
 // ListCommitsInPR return List the commits in the PR.
 // oreder is newest to oldest.
 func (c *GitHubRepository) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
-	opts := &github.ListOptions{PerPage: 20}
+	const pagingLimit = 20
+
+	opts := &github.ListOptions{PerPage: pagingLimit}
 
 	commitsInPR := make([]*model.Commit, 0)
 	for {

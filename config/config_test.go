@@ -9,10 +9,10 @@ import (
 	"github.com/nao1215/leadtime/domain/model"
 )
 
-func TestNewGitHubConfig(t *testing.T) {
+func TestNewGitHubConfig(t *testing.T) { //nolint
 	const token = model.Token("test_token")
 
-	t.Run("Get github config", func(t *testing.T) {
+	t.Run("Get github config", func(t *testing.T) { //nolint
 		t.Setenv("LT_GITHUB_ACCESS_TOKEN", token.String())
 
 		want := &GitHubConfig{
@@ -28,7 +28,7 @@ func TestNewGitHubConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("if user does not set github access token", func(t *testing.T) {
+	t.Run("if user does not set github access token", func(t *testing.T) { //nolint
 		_, got := NewGitHubConfig()
 		if !errors.Is(got, ErrNotSetGitHubAccessToken) {
 			t.Errorf("mismatch want=%v, got=%v", ErrNotSetGitHubAccessToken, got)

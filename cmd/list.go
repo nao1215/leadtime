@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var listCmd = &cobra.Command{
+var listCmd = &cobra.Command{ //nolint
 	Use:   "list",
 	Short: "List up GitHub pull request information",
 	Long: `List up GitHub repository or pull request information.
@@ -28,7 +28,7 @@ func init() { //nolint
 	*/
 }
 
-func list(cmd *cobra.Command, args []string) error {
+func list(cmd *cobra.Command, args []string) error { //nolint
 	leadTime, err := di.NewLeadTime()
 	if err != nil {
 		return err

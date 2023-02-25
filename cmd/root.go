@@ -16,7 +16,9 @@ func Execute() int {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	if err := rootCmd.Execute(); err != nil {
 		log.Error(err)
+
 		return 1
 	}
+
 	return 0
 }

@@ -34,7 +34,7 @@ func (pr *PRUsecaseListInput) Valid() error {
 
 // isEmptyRepositoryName check whether repository name is empty.
 // true means empty, false means not empty.
-func (pr *PRUsecaseListInput) isEmptyRepositoryName() bool {
+func (pr *PRUsecaseListInput) isEmptyRepositoryName() bool { //nolist
 	return pr.Repository == ""
 }
 

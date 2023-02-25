@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var statCmd = &cobra.Command{
+var statCmd = &cobra.Command{ //nolint
 	Use:   "stat",
 	Short: "Print GitHub pull request leadtime statics",
 	Long:  `Print GitHub pull request leadtime statics`,
@@ -22,7 +22,7 @@ func init() { //nolint
 	rootCmd.AddCommand(statCmd)
 }
 
-func stat(cmd *cobra.Command, args []string) error {
+func stat(cmd *cobra.Command, args []string) error { //nolint
 	leadTime, err := di.NewLeadTime()
 	if err != nil {
 		return err
@@ -64,5 +64,6 @@ func stat(cmd *cobra.Command, args []string) error {
 	fmt.Printf(" Lead Time(Sum)          = %d[min]\n", output.LeadTime.Sum())
 	fmt.Printf(" Lead Time(Ave)          = %.2f[min]\n", output.LeadTime.Ave())
 	fmt.Printf(" Lead Time(Median)       = %.2f[min]\n", output.LeadTime.Median())
+
 	return nil
 }
