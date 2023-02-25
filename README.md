@@ -70,6 +70,14 @@ PR      LeadTime[min]   Title
  Lead Time(Median)       = 66.50[min]
 ```
 
+## Features to be added
+- [ ] CSV output format
+- [ ] JSON output format
+- [ ] Markdown file output
+- [ ] Supports GitHub Actions
+- [ ] Exclude the bot's PR
+- [ ] faster by goroutine
+
 ## Contributing / Contact
 First off, thanks for taking the time to contribute! heart Contributions are not only related to development. For example, GitHub Star motivates me to develop!
   
