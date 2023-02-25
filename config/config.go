@@ -13,7 +13,7 @@ type GitHubConfig struct {
 }
 
 // NewGitHubConfig initialize github config.
-// If user does not set enviroment variable LT_GITHUB_ACCESS_TOKEN,
+// If user does not set environment variable LT_GITHUB_ACCESS_TOKEN,
 // return error.
 func NewGitHubConfig() (*GitHubConfig, error) {
 	cfg := &GitHubConfig{}
