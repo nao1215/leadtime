@@ -25,7 +25,9 @@ func NewLeadTime() (*LeadTime, error) {
 	gitHubRepository := github.NewGitHubRepository(client)
 	pullRequestService := service.NewPullRequestService(gitHubRepository)
 	pullRequestUsecase := usecase.NewPullRequestUsecase(pullRequestService)
-	leadTime := newLeadTime(gitHubConfig, pullRequestUsecase)
+	commitService := service.NewCommitRequestService(gitHubRepository)
+	leadTimeUsecase := usecase.NewLeadTimeUsecase(pullRequestService, commitService)
+	leadTime := newLeadTime(gitHubConfig, pullRequestUsecase, leadTimeUsecase)
 	return leadTime, nil
 }
 
@@ -35,12 +37,15 @@ func NewLeadTime() (*LeadTime, error) {
 type LeadTime struct {
 	GithubConfig       *config.GitHubConfig
 	PullRequestUsecase usecase.PullRequestUsecase
+	LeadTimeUsecase    usecase.LeadTimeUsecase
 }
 
 // newLeadTime initialize LeadTime struct
-func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase) *LeadTime {
+func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase,
+	leadTimeUsecase usecase.LeadTimeUsecase) *LeadTime {
 	return &LeadTime{
 		GithubConfig:       githubConfig,
 		PullRequestUsecase: pullRequestUsecase,
+		LeadTimeUsecase:    leadTimeUsecase,
 	}
 }

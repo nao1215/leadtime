@@ -3,9 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/nao1215/leadtime/domain/model"
 	"github.com/nao1215/leadtime/domain/service"
+	"github.com/shogo82148/pointer"
 )
 
 // PullRequestUsecase is use cases for obtaining PR information.
@@ -42,13 +44,34 @@ type PRUsecaseListOutput struct {
 
 // PullRequest is PR information for presentation layer.
 type PullRequest struct {
-	Number    int64
+	Number    int
 	State     string
 	Title     string
-	CreatedAt *model.Timestamp
-	ClosedAt  *model.Timestamp
-	MergedAt  *model.Timestamp
-	User      model.User
+	CreatedAt time.Time
+	ClosedAt  time.Time
+	MergedAt  time.Time
+	UserName  string
+}
+
+func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest) *PullRequest {
+	p.Number = pointer.IntValue(domainModelPR.Number)
+	p.Title = pointer.StringValue(domainModelPR.Title)
+	p.State = pointer.StringValue(domainModelPR.State)
+
+	if domainModelPR.CreatedAt != nil {
+		p.CreatedAt = pointer.TimeValue(&domainModelPR.CreatedAt.Time)
+	}
+	if domainModelPR.ClosedAt != nil {
+		p.ClosedAt = pointer.TimeValue(&domainModelPR.ClosedAt.Time)
+	}
+	if domainModelPR.MergedAt != nil {
+		p.MergedAt = pointer.TimeValue(&domainModelPR.MergedAt.Time)
+	}
+	if domainModelPR.User != nil {
+		p.UserName = pointer.StringValue(domainModelPR.User.Name)
+	}
+
+	return p
 }
 
 // PRUsecase implement PullRequestUsecase
@@ -56,7 +79,7 @@ type PRUsecase struct {
 	prService *service.PullRequestService
 }
 
-// NewPullRequestUsecase initialize pullRequestUsecase
+// NewPullRequestUsecase initialize PRUsecase
 func NewPullRequestUsecase(prService *service.PullRequestService) PullRequestUsecase {
 	return &PRUsecase{
 		prService: prService,

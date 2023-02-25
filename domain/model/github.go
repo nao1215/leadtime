@@ -63,6 +63,14 @@ type PullRequest struct {
 	ChangedFiles *int
 }
 
+// IsClosed check whether pull request is closed or not.
+func (pr *PullRequest) IsClosed() bool {
+	if pr.State == nil {
+		return false
+	}
+	return *pr.State == "closed"
+}
+
 // Commit is git commit information
 type Commit struct {
 	// Author is author user

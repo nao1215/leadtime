@@ -22,10 +22,13 @@ repository.`,
 	},
 }
 
+// nolint
 func init() {
-	listCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
-	listCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
-	rootCmd.AddCommand(listCmd)
+	/*
+		listCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
+		listCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
+		rootCmd.AddCommand(listCmd)
+	*/
 }
 
 func list(cmd *cobra.Command, args []string) error {

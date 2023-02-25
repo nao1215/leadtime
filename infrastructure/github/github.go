@@ -27,6 +27,7 @@ func NewClient(token model.Token) *Client {
 	return &Client{Client: github.NewClient(client)}
 }
 
+// GitHubRepository is http client for GitHub API
 type GitHubRepository struct {
 	client *Client
 }
@@ -112,24 +113,33 @@ func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo str
 }
 
 // ListCommitsInPR return List the commits in the PR.
+// oreder is newest to oldest.
 func (c *GitHubRepository) ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error) {
-	commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, nil)
-	if resp != nil {
-		defer func() error {
-			if err := resp.Body.Close(); err != nil {
-				return fmt.Errorf("failed to close response body: %w", err)
-			}
-
-			return nil
-		}()
-	}
-	if err != nil {
-		return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
-	}
+	opts := &github.ListOptions{PerPage: 20}
 
 	commitsInPR := make([]*model.Commit, 0)
-	for _, v := range commits {
-		commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+	for {
+		commits, resp, err := c.client.PullRequests.ListCommits(ctx, owner, repo, number, opts)
+		if resp != nil {
+			defer func() error {
+				if err := resp.Body.Close(); err != nil {
+					return fmt.Errorf("failed to close response body: %w", err)
+				}
+
+				return nil
+			}()
+		}
+		if err != nil {
+			return nil, &APIError{StatusCode: resp.StatusCode, Message: "failed to get git commit list"}
+		}
+
+		for _, v := range commits {
+			commitsInPR = append(commitsInPR, toDomainModelCommit(v))
+		}
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 
 	return commitsInPR, nil

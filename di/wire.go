@@ -18,13 +18,16 @@ import (
 type LeadTime struct {
 	GithubConfig       *config.GitHubConfig
 	PullRequestUsecase usecase.PullRequestUsecase
+	LeadTimeUsecase    usecase.LeadTimeUsecase
 }
 
 // newLeadTime initialize LeadTime struct
-func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase) *LeadTime {
+func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase,
+	leadTimeUsecase usecase.LeadTimeUsecase) *LeadTime {
 	return &LeadTime{
 		GithubConfig:       githubConfig,
 		PullRequestUsecase: pullRequestUsecase,
+		LeadTimeUsecase:    leadTimeUsecase,
 	}
 }
 
@@ -33,7 +36,9 @@ func NewLeadTime() (*LeadTime, error) {
 		config.NewGitHubConfig,
 		config.NewGitHubAccessToken,
 		usecase.NewPullRequestUsecase,
+		usecase.NewLeadTimeUsecase,
 		service.NewPullRequestService,
+		service.NewCommitRequestService,
 		github.NewClient,
 		github.NewGitHubRepository,
 		newLeadTime,

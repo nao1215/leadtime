@@ -7,4 +7,6 @@ var (
 	ErrEmptyGitHubAccessToken = errors.New("github access token is empty")
 	// ErrEmptyGitHubOwnerName means "github owner name is empty"
 	ErrEmptyGitHubOwnerName = errors.New("github owner name is empty")
+	// ErrEmptyRepositoryName means "github repository name is empty"
+	ErrEmptyRepositoryName = errors.New("github repository name is empty")
 )
