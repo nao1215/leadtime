@@ -89,6 +89,8 @@ func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, fir
 		p.MergeTimeMinutes = MinuteDiff(p.MergedAt, p.FirstCommitAt)
 	} else if p.ClosedAt != (time.Time{}) {
 		p.MergeTimeMinutes = MinuteDiff(p.ClosedAt, p.FirstCommitAt)
+	} else {
+		p.MergeTimeMinutes = MinuteDiff(time.Now(), p.FirstCommitAt)
 	}
 
 	return p
@@ -96,6 +98,17 @@ func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, fir
 
 type LeadTime struct {
 	PRs []*PullRequest
+}
+
+func (lt *LeadTime) RemoveOpenPR() {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if v.State == "open" {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
 }
 
 func (lt *LeadTime) Min() int {

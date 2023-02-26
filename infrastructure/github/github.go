@@ -192,7 +192,7 @@ func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
 	var user *model.User
 	if githubPR.User != nil {
 		user = &model.User{
-			Name: githubPR.User.Name,
+			Name: github.String(githubPR.GetUser().GetLogin()),
 		}
 	}
 

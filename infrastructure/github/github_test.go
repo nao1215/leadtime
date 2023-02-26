@@ -226,7 +226,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 						Time: now,
 					},
 					User: &github.User{
-						Name: github.String("test_user1"),
+						Login: github.String("test_user1"),
 					},
 					Comments:     github.Int(0),
 					Additions:    github.Int(10),
@@ -248,7 +248,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 						Time: now,
 					},
 					User: &github.User{
-						Name: github.String("test_user2"),
+						Login: github.String("test_user2"),
 					},
 					Comments:     github.Int(2),
 					Additions:    github.Int(5),
@@ -861,7 +861,7 @@ func Test_toDomainModelPR(t *testing.T) {
 					Time: now,
 				},
 				User: &github.User{
-					Name: github.String("test_user1"),
+					Login: github.String("test_user1"),
 				},
 				Comments:     github.Int(0),
 				Additions:    github.Int(10),

@@ -55,19 +55,20 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 		return err
 	}
 
-	fmt.Printf("PR\tLeadTime[min]\tTitle\n")
+	output.LeadTime.RemoveOpenPR()
+	fmt.Printf("PR\tAuthor\tLeadTime[min]\tTitle\n")
 	for _, v := range output.LeadTime.PRs {
-		fmt.Printf("#%d\t%d\t%s\n", v.Number, v.MergeTimeMinutes, v.Title)
+		fmt.Printf("#%d\t%s\t%d\t%s\n", v.Number, v.UserName, v.MergeTimeMinutes, v.Title)
 	}
 
 	fmt.Println("")
 	fmt.Println("[statistics]")
-	fmt.Printf(" Total PR(Closed/Merged) = %d\n", len(output.LeadTime.PRs))
-	fmt.Printf(" Lead Time(Max)          = %d[min]\n", output.LeadTime.Max())
-	fmt.Printf(" Lead Time(Min)          = %d[min]\n", output.LeadTime.Min())
-	fmt.Printf(" Lead Time(Sum)          = %d[min]\n", output.LeadTime.Sum())
-	fmt.Printf(" Lead Time(Ave)          = %.2f[min]\n", output.LeadTime.Ave())
-	fmt.Printf(" Lead Time(Median)       = %.2f[min]\n", output.LeadTime.Median())
+	fmt.Printf(" Total PR       = %d\n", len(output.LeadTime.PRs))
+	fmt.Printf(" Lead Time(Max) = %d[min]\n", output.LeadTime.Max())
+	fmt.Printf(" Lead Time(Min) = %d[min]\n", output.LeadTime.Min())
+	fmt.Printf(" Lead Time(Sum) = %d[min]\n", output.LeadTime.Sum())
+	fmt.Printf(" Lead Time(Ave) = %.2f[min]\n", output.LeadTime.Ave())
+	fmt.Printf(" Lead Time(Median) = %.2f[min]\n", output.LeadTime.Median())
 
 	return nil
 }
