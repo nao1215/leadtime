@@ -56,13 +56,13 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 	}
 
 	fmt.Printf("PR\tLeadTime[min]\tTitle\n")
-	for _, v := range output.LeadTime.PRstats {
+	for _, v := range output.LeadTime.PRs {
 		fmt.Printf("#%d\t%d\t%s\n", v.Number, v.MergeTimeMinutes, v.Title)
 	}
 
 	fmt.Println("")
 	fmt.Println("[statistics]")
-	fmt.Printf(" Total PR(Closed/Merged) = %d\n", len(output.LeadTime.PRstats))
+	fmt.Printf(" Total PR(Closed/Merged) = %d\n", len(output.LeadTime.PRs))
 	fmt.Printf(" Lead Time(Max)          = %d[min]\n", output.LeadTime.Max())
 	fmt.Printf(" Lead Time(Min)          = %d[min]\n", output.LeadTime.Min())
 	fmt.Printf(" Lead Time(Sum)          = %d[min]\n", output.LeadTime.Sum())
