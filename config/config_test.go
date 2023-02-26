@@ -37,3 +37,17 @@ func TestNewGitHubConfig(t *testing.T) { //nolint
 		}
 	})
 }
+
+func TestNewGitHubAccessToken(t *testing.T) {
+	t.Run("Get access token", func(t *testing.T) {
+		config := &GitHubConfig{
+			AccessToken: "testToken",
+		}
+		got := NewGitHubAccessToken(config)
+
+		want := config.AccessToken
+		if want != got {
+			t.Errorf("mismatch want=%s, got=%s", want, got)
+		}
+	})
+}
