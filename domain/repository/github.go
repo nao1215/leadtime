@@ -14,4 +14,6 @@ type GitHubRepository interface {
 	ListPullRequests(ctx context.Context, owner, repo string) ([]*model.PullRequest, error)
 	// ListCommitsInPR return commits in PR.
 	ListCommitsInPR(ctx context.Context, owner, repo string, number int) ([]*model.Commit, error)
+	// GetFirstCommit return first commit in PR.
+	GetFirstCommit(ctx context.Context, owner, repository string, number int) (*model.Commit, error)
 }

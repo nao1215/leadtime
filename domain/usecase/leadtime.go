@@ -6,7 +6,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/nao1215/leadtime/domain/service"
+	"github.com/nao1215/leadtime/domain/model"
+	"github.com/nao1215/leadtime/domain/repository"
+	"github.com/nao1215/leadtime/infrastructure/github"
+	"github.com/shogo82148/pointer"
 )
 
 // LeadTimeUsecase is use cases for stat leadtime
@@ -126,23 +129,53 @@ type PRStat struct {
 	MergeTimeMinutes int
 }
 
+// PullRequest is PR information for presentation layer.
+type PullRequest struct {
+	Number    int
+	State     string
+	Title     string
+	CreatedAt time.Time
+	ClosedAt  time.Time
+	MergedAt  time.Time
+	UserName  string
+}
+
+func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest) *PullRequest {
+	p.Number = pointer.IntValue(domainModelPR.Number)
+	p.Title = pointer.StringValue(domainModelPR.Title)
+	p.State = pointer.StringValue(domainModelPR.State)
+
+	if domainModelPR.CreatedAt != nil {
+		p.CreatedAt = pointer.TimeValue(&domainModelPR.CreatedAt.Time)
+	}
+	if domainModelPR.ClosedAt != nil {
+		p.ClosedAt = pointer.TimeValue(&domainModelPR.ClosedAt.Time)
+	}
+	if domainModelPR.MergedAt != nil {
+		p.MergedAt = pointer.TimeValue(&domainModelPR.MergedAt.Time)
+	}
+	if domainModelPR.User != nil {
+		p.UserName = pointer.StringValue(domainModelPR.User.Name)
+	}
+
+	return p
+}
+
 // LTUsecase implement LeadTimeUsecase
 type LTUsecase struct {
-	prService     *service.PullRequestService
-	commitService *service.CommitService
+	gitHubRepo repository.GitHubRepository
 }
 
 // NewLeadTimeUsecase initialize LTUsecase
-func NewLeadTimeUsecase(prService *service.PullRequestService, commitService *service.CommitService) LeadTimeUsecase {
+func NewLeadTimeUsecase(gitHubRepo repository.GitHubRepository) LeadTimeUsecase {
 	return &LTUsecase{
-		prService:     prService,
-		commitService: commitService,
+		gitHubRepo: gitHubRepo,
 	}
 }
 
 // Stat return lead time statistics
 func (lt *LTUsecase) Stat(ctx context.Context, input *LeadTimeUsecaseStatInput) (*LeadTimeUsecaseStatOutput, error) {
-	prs, err := lt.prService.List(ctx, input.Owner, input.Repository)
+	prs, err := lt.gitHubRepo.ListPullRequests(ctx, input.Owner, input.Repository)
 	if err != nil {
 		return nil, err
 	}
@@ -159,9 +192,9 @@ func (lt *LTUsecase) Stat(ctx context.Context, input *LeadTimeUsecaseStatInput) 
 	prStats := make([]*PRStat, 0)
 	for _, v := range pullReqs {
 		prStat := &PRStat{}
-		commit, err := lt.commitService.GetFirstCommit(ctx, input.Owner, input.Repository, v.Number)
+		commit, err := lt.gitHubRepo.GetFirstCommit(ctx, input.Owner, input.Repository, v.Number)
 		if err != nil {
-			if errors.Is(err, service.ErrNoCommit) {
+			if errors.Is(err, github.ErrNoCommit) {
 				continue
 			}
 			return nil, err

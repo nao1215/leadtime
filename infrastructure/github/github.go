@@ -110,6 +110,10 @@ func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo str
 		opts.ListOptions.Page = resp.NextPage
 	}
 
+	if len(pullReqs) == 0 {
+		return nil, ErrNoPullRequest
+	}
+
 	return pullReqs, nil
 }
 
@@ -145,7 +149,21 @@ func (c *GitHubRepository) ListCommitsInPR(ctx context.Context, owner, repo stri
 		opts.Page = resp.NextPage
 	}
 
+	if len(commitsInPR) == 0 {
+		return nil, ErrNoCommit
+	}
+
 	return commitsInPR, nil
+}
+
+// GetFirstCommit return first commit in the pull request.
+func (c *GitHubRepository) GetFirstCommit(ctx context.Context, owner, repository string, number int) (*model.Commit, error) {
+	list, err := c.ListCommitsInPR(ctx, owner, repository, number)
+	if err != nil {
+		return nil, err
+	}
+
+	return list[0], nil
 }
 
 // toDomainModelPR convert *github.PullRequest to *model.PullRequest

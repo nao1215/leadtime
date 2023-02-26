@@ -8,7 +8,6 @@ package di
 
 import (
 	"github.com/nao1215/leadtime/config"
-	"github.com/nao1215/leadtime/domain/service"
 	"github.com/nao1215/leadtime/domain/usecase"
 	"github.com/nao1215/leadtime/infrastructure/github"
 )
@@ -23,11 +22,8 @@ func NewLeadTime() (*LeadTime, error) {
 	token := config.NewGitHubAccessToken(gitHubConfig)
 	client := github.NewClient(token)
 	gitHubRepository := github.NewGitHubRepository(client)
-	pullRequestService := service.NewPullRequestService(gitHubRepository)
-	pullRequestUsecase := usecase.NewPullRequestUsecase(pullRequestService)
-	commitService := service.NewCommitRequestService(gitHubRepository)
-	leadTimeUsecase := usecase.NewLeadTimeUsecase(pullRequestService, commitService)
-	leadTime := newLeadTime(gitHubConfig, pullRequestUsecase, leadTimeUsecase)
+	leadTimeUsecase := usecase.NewLeadTimeUsecase(gitHubRepository)
+	leadTime := newLeadTime(gitHubConfig, leadTimeUsecase)
 	return leadTime, nil
 }
 
@@ -35,17 +31,14 @@ func NewLeadTime() (*LeadTime, error) {
 
 // LeadTime is usecase set.
 type LeadTime struct {
-	GithubConfig       *config.GitHubConfig
-	PullRequestUsecase usecase.PullRequestUsecase
-	LeadTimeUsecase    usecase.LeadTimeUsecase
+	GithubConfig    *config.GitHubConfig
+	LeadTimeUsecase usecase.LeadTimeUsecase
 }
 
 // newLeadTime initialize LeadTime struct
-func newLeadTime(githubConfig *config.GitHubConfig, pullRequestUsecase usecase.PullRequestUsecase,
-	leadTimeUsecase usecase.LeadTimeUsecase) *LeadTime {
+func newLeadTime(githubConfig *config.GitHubConfig, leadTimeUsecase usecase.LeadTimeUsecase) *LeadTime {
 	return &LeadTime{
-		GithubConfig:       githubConfig,
-		PullRequestUsecase: pullRequestUsecase,
-		LeadTimeUsecase:    leadTimeUsecase,
+		GithubConfig:    githubConfig,
+		LeadTimeUsecase: leadTimeUsecase,
 	}
 }
