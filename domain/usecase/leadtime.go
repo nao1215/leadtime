@@ -141,7 +141,7 @@ func (lt *LeadTime) Max() int {
 	return max
 }
 
-func (lt *LeadTime) Ave() float64 {
+func (lt *LeadTime) Average() float64 {
 	if len(lt.PRs) == 0 {
 		return 0
 	}
