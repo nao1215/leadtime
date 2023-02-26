@@ -59,6 +59,7 @@ func (c *GitHubRepository) ListRepositories(ctx context.Context) ([]*model.Repos
 		if v.Owner != nil {
 			user = &model.User{
 				Name: v.Owner.Name,
+				Bot:  (v.Owner.GetType() == "Bot"),
 			}
 		}
 
@@ -110,6 +111,10 @@ func (c *GitHubRepository) ListPullRequests(ctx context.Context, owner, repo str
 		opts.ListOptions.Page = resp.NextPage
 	}
 
+	if len(pullReqs) == 0 {
+		return nil, ErrNoPullRequest
+	}
+
 	return pullReqs, nil
 }
 
@@ -145,7 +150,21 @@ func (c *GitHubRepository) ListCommitsInPR(ctx context.Context, owner, repo stri
 		opts.Page = resp.NextPage
 	}
 
+	if len(commitsInPR) == 0 {
+		return nil, ErrNoCommit
+	}
+
 	return commitsInPR, nil
+}
+
+// GetFirstCommit return first commit in the pull request.
+func (c *GitHubRepository) GetFirstCommit(ctx context.Context, owner, repository string, number int) (*model.Commit, error) {
+	list, err := c.ListCommitsInPR(ctx, owner, repository, number)
+	if err != nil {
+		return nil, err
+	}
+
+	return list[0], nil
 }
 
 // toDomainModelPR convert *github.PullRequest to *model.PullRequest
@@ -174,7 +193,8 @@ func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
 	var user *model.User
 	if githubPR.User != nil {
 		user = &model.User{
-			Name: githubPR.User.Name,
+			Name: github.String(githubPR.GetUser().GetLogin()),
+			Bot:  (githubPR.User.GetType() == "Bot"),
 		}
 	}
 
@@ -202,6 +222,7 @@ func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
 	if commit.Author != nil {
 		author = &model.User{
 			Name: commit.Author.Name,
+			Bot:  (commit.Author.GetType() == "Bot"),
 		}
 	}
 
@@ -209,6 +230,7 @@ func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
 	if commit.Committer != nil {
 		committer = &model.User{
 			Name: commit.Committer.Name,
+			Bot:  (commit.Committer.GetType() == "Bot"),
 		}
 	}
 

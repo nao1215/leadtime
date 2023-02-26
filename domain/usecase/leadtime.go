@@ -6,7 +6,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/nao1215/leadtime/domain/service"
+	"github.com/nao1215/leadtime/domain/model"
+	"github.com/nao1215/leadtime/domain/repository"
+	"github.com/nao1215/leadtime/infrastructure/github"
+	"github.com/shogo82148/pointer"
 )
 
 // LeadTimeUsecase is use cases for stat leadtime
@@ -38,17 +41,83 @@ type LeadTimeUsecaseStatOutput struct {
 	LeadTime *LeadTime
 }
 
+// LTUsecase implement LeadTimeUsecase
+type LTUsecase struct {
+	gitHubRepo repository.GitHubRepository
+}
+
+// NewLeadTimeUsecase initialize LTUsecase
+func NewLeadTimeUsecase(gitHubRepo repository.GitHubRepository) LeadTimeUsecase {
+	return &LTUsecase{
+		gitHubRepo: gitHubRepo,
+	}
+}
+
+// PullRequest is PR information for presentation layer.
+type PullRequest struct {
+	Number           int
+	State            string
+	Title            string
+	FirstCommitAt    time.Time
+	CreatedAt        time.Time
+	ClosedAt         time.Time
+	MergedAt         time.Time
+	User             *model.User
+	MergeTimeMinutes int
+}
+
+func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, firstCommitAt time.Time) *PullRequest {
+	p.Number = pointer.IntValue(domainModelPR.Number)
+	p.Title = pointer.StringValue(domainModelPR.Title)
+	p.State = pointer.StringValue(domainModelPR.State)
+	p.FirstCommitAt = firstCommitAt
+
+	if domainModelPR.CreatedAt != nil {
+		p.CreatedAt = pointer.TimeValue(&domainModelPR.CreatedAt.Time)
+	}
+	if domainModelPR.ClosedAt != nil {
+		p.ClosedAt = pointer.TimeValue(&domainModelPR.ClosedAt.Time)
+	}
+	if domainModelPR.MergedAt != nil {
+		p.MergedAt = pointer.TimeValue(&domainModelPR.MergedAt.Time)
+	}
+	if domainModelPR.User != nil {
+		p.User = domainModelPR.User
+	}
+
+	if p.MergedAt != (time.Time{}) {
+		p.MergeTimeMinutes = MinuteDiff(p.MergedAt, p.FirstCommitAt)
+	} else if p.ClosedAt != (time.Time{}) {
+		p.MergeTimeMinutes = MinuteDiff(p.ClosedAt, p.FirstCommitAt)
+	} else {
+		p.MergeTimeMinutes = MinuteDiff(time.Now(), p.FirstCommitAt)
+	}
+
+	return p
+}
+
 type LeadTime struct {
-	PRstats []*PRStat
+	PRs []*PullRequest
+}
+
+func (lt *LeadTime) RemoveOpenPR() {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if v.State == "open" {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
 }
 
 func (lt *LeadTime) Min() int {
-	if len(lt.PRstats) == 0 {
+	if len(lt.PRs) == 0 {
 		return 0
 	}
 
-	min := lt.PRstats[0].MergeTimeMinutes
-	for _, v := range lt.PRstats[1:] {
+	min := lt.PRs[0].MergeTimeMinutes
+	for _, v := range lt.PRs[1:] {
 		if v.MergeTimeMinutes < min {
 			min = v.MergeTimeMinutes
 		}
@@ -58,12 +127,12 @@ func (lt *LeadTime) Min() int {
 }
 
 func (lt *LeadTime) Max() int {
-	if len(lt.PRstats) == 0 {
+	if len(lt.PRs) == 0 {
 		return 0
 	}
 
-	max := lt.PRstats[0].MergeTimeMinutes
-	for _, v := range lt.PRstats[1:] {
+	max := lt.PRs[0].MergeTimeMinutes
+	for _, v := range lt.PRs[1:] {
 		if v.MergeTimeMinutes > max {
 			max = v.MergeTimeMinutes
 		}
@@ -72,26 +141,26 @@ func (lt *LeadTime) Max() int {
 	return max
 }
 
-func (lt *LeadTime) Ave() float64 {
-	if len(lt.PRstats) == 0 {
+func (lt *LeadTime) Average() float64 {
+	if len(lt.PRs) == 0 {
 		return 0
 	}
 
 	sum := float64(0)
-	for _, v := range lt.PRstats {
+	for _, v := range lt.PRs {
 		sum += float64(v.MergeTimeMinutes)
 	}
 
-	return sum / float64(len(lt.PRstats))
+	return sum / float64(len(lt.PRs))
 }
 
 func (lt *LeadTime) Sum() int {
-	if len(lt.PRstats) == 0 {
+	if len(lt.PRs) == 0 {
 		return 0
 	}
 
 	sum := 0
-	for _, v := range lt.PRstats {
+	for _, v := range lt.PRs {
 		sum += v.MergeTimeMinutes
 	}
 
@@ -99,12 +168,12 @@ func (lt *LeadTime) Sum() int {
 }
 
 func (lt *LeadTime) Median() float64 {
-	if len(lt.PRstats) == 0 {
+	if len(lt.PRs) == 0 {
 		return 0
 	}
 
-	nums := make([]int, 0, len(lt.PRstats))
-	for _, v := range lt.PRstats {
+	nums := make([]int, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
 		nums = append(nums, v.MergeTimeMinutes)
 	}
 	sort.Ints(nums)
@@ -120,69 +189,34 @@ func (lt *LeadTime) Median() float64 {
 	return median
 }
 
-type PRStat struct {
-	Number           int
-	Title            string
-	MergeTimeMinutes int
-}
-
-// LTUsecase implement LeadTimeUsecase
-type LTUsecase struct {
-	prService     *service.PullRequestService
-	commitService *service.CommitService
-}
-
-// NewLeadTimeUsecase initialize LTUsecase
-func NewLeadTimeUsecase(prService *service.PullRequestService, commitService *service.CommitService) LeadTimeUsecase {
-	return &LTUsecase{
-		prService:     prService,
-		commitService: commitService,
-	}
-}
-
 // Stat return lead time statistics
 func (lt *LTUsecase) Stat(ctx context.Context, input *LeadTimeUsecaseStatInput) (*LeadTimeUsecaseStatOutput, error) {
-	prs, err := lt.prService.List(ctx, input.Owner, input.Repository)
+	prs, err := lt.gitHubRepo.ListPullRequests(ctx, input.Owner, input.Repository)
 	if err != nil {
 		return nil, err
 	}
 
 	pullReqs := make([]*PullRequest, 0)
 	for _, v := range prs {
-		if !v.IsClosed() {
+		if v.Number == nil {
 			continue
 		}
-		pr := &PullRequest{}
-		pullReqs = append(pullReqs, pr.toUsecasePullRequest(v))
-	}
 
-	prStats := make([]*PRStat, 0)
-	for _, v := range pullReqs {
-		prStat := &PRStat{}
-		commit, err := lt.commitService.GetFirstCommit(ctx, input.Owner, input.Repository, v.Number)
+		commit, err := lt.gitHubRepo.GetFirstCommit(ctx, input.Owner, input.Repository, *v.Number)
 		if err != nil {
-			if errors.Is(err, service.ErrNoCommit) {
+			if errors.Is(err, github.ErrNoCommit) {
 				continue
 			}
 			return nil, err
 		}
 
-		prStat.Number = v.Number
-		prStat.Title = v.Title
-		if v.MergedAt != (time.Time{}) {
-			prStat.MergeTimeMinutes = MinuteDiff(v.MergedAt, commit.Date.Time)
-		} else if v.ClosedAt != (time.Time{}) {
-			prStat.MergeTimeMinutes = MinuteDiff(v.ClosedAt, commit.Date.Time)
-		} else {
-			continue
-		}
-
-		prStats = append(prStats, prStat)
+		pr := &PullRequest{}
+		pullReqs = append(pullReqs, pr.toUsecasePullRequest(v, commit.Date.Time))
 	}
 
 	return &LeadTimeUsecaseStatOutput{
 		LeadTime: &LeadTime{
-			PRstats: prStats,
+			PRs: pullReqs,
 		},
 	}, nil
 }

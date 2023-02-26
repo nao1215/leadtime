@@ -28,6 +28,8 @@ type Repository struct {
 type User struct {
 	// Name is user name.
 	Name *string `json:"name,omitempty"`
+	// Bot is whether user is bot or not
+	Bot bool
 }
 
 // Timestamp represents a time.

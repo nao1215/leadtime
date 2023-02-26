@@ -226,7 +226,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 						Time: now,
 					},
 					User: &github.User{
-						Name: github.String("test_user1"),
+						Login: github.String("test_user1"),
 					},
 					Comments:     github.Int(0),
 					Additions:    github.Int(10),
@@ -248,7 +248,7 @@ func TestClient_ListPullRequests(t *testing.T) {
 						Time: now,
 					},
 					User: &github.User{
-						Name: github.String("test_user2"),
+						Login: github.String("test_user2"),
 					},
 					Comments:     github.Int(2),
 					Additions:    github.Int(5),
@@ -316,6 +316,52 @@ func TestClient_ListPullRequests(t *testing.T) {
 		}
 		if diff := cmp.Diff(wantPRs, gotPRs); diff != "" {
 			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("Get empty PR list", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+
+			respBody, err := json.Marshal([]github.PullRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			rw.WriteHeader(http.StatusOK)
+			if _, err := rw.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		token := model.Token("token")
+		client := NewClient(token)
+		repo := NewGitHubRepository(client)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
+		}
+
+		want := ErrNoPullRequest
+		_, got := repo.ListPullRequests(ctx, "owner", "repo")
+		if !errors.Is(got, want) {
+			t.Errorf("mismatch want=%v, got=%v", want, got)
 		}
 	})
 
@@ -625,6 +671,140 @@ func TestClient_ListCommitsInPR(t *testing.T) {
 	})
 }
 
+func TestGitHubRepository_GetFirstCommit(t *testing.T) {
+	t.Parallel()
+
+	const (
+		apiURL = "/repos/owner/repo/pulls/123/commits"
+		token  = "token"
+	)
+	now := time.Date(2023, 2, 24, 12, 34, 56, 0, time.UTC)
+
+	t.Run("Get first commit in the PR", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+
+			respBody, err := json.Marshal([]github.RepositoryCommit{
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{Time: now},
+						},
+					},
+					Author: &github.User{
+						Name: github.String("author1"),
+					},
+					Committer: &github.User{
+						Name: github.String("comitter1"),
+					},
+				},
+				{
+					Commit: &github.Commit{
+						Committer: &github.CommitAuthor{
+							Date: &github.Timestamp{Time: now},
+						},
+					},
+					Author: &github.User{
+						Name: github.String("author2"),
+					},
+					Committer: &github.User{
+						Name: github.String("comitter2"),
+					},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			w.WriteHeader(http.StatusOK)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		client := NewClient(token)
+		repo := NewGitHubRepository(client)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
+		}
+
+		want := &model.Commit{
+			Author:    &model.User{Name: github.String("author1")},
+			Committer: &model.User{Name: github.String("comitter1")},
+			Date:      &model.Timestamp{Time: now},
+		}
+		got, err := repo.GetFirstCommit(ctx, "owner", "repo", 123)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("No commit in the PR", func(t *testing.T) {
+		t.Parallel()
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			wantURL := apiURL
+			if wantURL != req.URL.Path {
+				t.Errorf("mismatch want=%v, got=%s", wantURL, req.URL.Path)
+			}
+
+			wantHTTPMethod := http.MethodGet
+			if wantHTTPMethod != req.Method {
+				t.Errorf("mismatch want=%v, got=%s", wantHTTPMethod, req.Method)
+			}
+
+			respBody, err := json.Marshal([]github.RepositoryCommit{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			w.WriteHeader(http.StatusOK)
+			if _, err := w.Write(respBody); err != nil {
+				t.Fatal(err)
+			}
+		}))
+		defer testServer.Close()
+
+		client := NewClient(token)
+		repo := NewGitHubRepository(client)
+		ctx := context.Background()
+
+		testURL, err := url.Parse(testServer.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		client.BaseURL = testURL
+		if !strings.HasSuffix(client.BaseURL.Path, "/") {
+			client.BaseURL.Path += "/"
+		}
+
+		want := ErrNoCommit
+		_, got := repo.GetFirstCommit(ctx, "owner", "repo", 123)
+		if !errors.Is(got, want) {
+			t.Errorf("mismatch want=%v, got=%v", want, got)
+		}
+	})
+}
+
 func Test_toDomainModelPR(t *testing.T) {
 	t.Parallel()
 
@@ -681,7 +861,7 @@ func Test_toDomainModelPR(t *testing.T) {
 					Time: now,
 				},
 				User: &github.User{
-					Name: github.String("test_user1"),
+					Login: github.String("test_user1"),
 				},
 				Comments:     github.Int(0),
 				Additions:    github.Int(10),
