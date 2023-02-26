@@ -6,6 +6,7 @@ import (
 
 	"github.com/nao1215/leadtime/di"
 	"github.com/nao1215/leadtime/domain/usecase"
+	"github.com/shogo82148/pointer"
 	"github.com/spf13/cobra"
 )
 
@@ -56,9 +57,13 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 	}
 
 	output.LeadTime.RemoveOpenPR()
-	fmt.Printf("PR\tAuthor\tLeadTime[min]\tTitle\n")
+	fmt.Printf("PR\tAuthor\tBot\tLeadTime[min]\tTitle\n")
 	for _, v := range output.LeadTime.PRs {
-		fmt.Printf("#%d\t%s\t%d\t%s\n", v.Number, v.UserName, v.MergeTimeMinutes, v.Title)
+		if v.User.Bot {
+			fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "yes", v.MergeTimeMinutes, v.Title)
+			continue
+		}
+		fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "no", v.MergeTimeMinutes, v.Title)
 	}
 
 	fmt.Println("")

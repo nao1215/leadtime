@@ -62,7 +62,7 @@ type PullRequest struct {
 	CreatedAt        time.Time
 	ClosedAt         time.Time
 	MergedAt         time.Time
-	UserName         string
+	User             *model.User
 	MergeTimeMinutes int
 }
 
@@ -82,7 +82,7 @@ func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, fir
 		p.MergedAt = pointer.TimeValue(&domainModelPR.MergedAt.Time)
 	}
 	if domainModelPR.User != nil {
-		p.UserName = pointer.StringValue(domainModelPR.User.Name)
+		p.User = domainModelPR.User
 	}
 
 	if p.MergedAt != (time.Time{}) {

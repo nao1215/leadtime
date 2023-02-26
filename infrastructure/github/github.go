@@ -59,6 +59,7 @@ func (c *GitHubRepository) ListRepositories(ctx context.Context) ([]*model.Repos
 		if v.Owner != nil {
 			user = &model.User{
 				Name: v.Owner.Name,
+				Bot:  (v.Owner.GetType() == "Bot"),
 			}
 		}
 
@@ -193,6 +194,7 @@ func toDomainModelPR(githubPR *github.PullRequest) *model.PullRequest {
 	if githubPR.User != nil {
 		user = &model.User{
 			Name: github.String(githubPR.GetUser().GetLogin()),
+			Bot:  (githubPR.User.GetType() == "Bot"),
 		}
 	}
 
@@ -220,6 +222,7 @@ func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
 	if commit.Author != nil {
 		author = &model.User{
 			Name: commit.Author.Name,
+			Bot:  (commit.Author.GetType() == "Bot"),
 		}
 	}
 
@@ -227,6 +230,7 @@ func toDomainModelCommit(commit *github.RepositoryCommit) *model.Commit {
 	if commit.Committer != nil {
 		committer = &model.User{
 			Name: commit.Committer.Name,
+			Bot:  (commit.Committer.GetType() == "Bot"),
 		}
 	}
 
