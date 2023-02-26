@@ -3,6 +3,7 @@ package config
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,6 +12,7 @@ import (
 
 func TestNewGitHubConfig(t *testing.T) { //nolint
 	const token = model.Token("test_token")
+	os.Unsetenv("LT_GITHUB_ACCESS_TOKEN")
 
 	t.Run("Get github config", func(t *testing.T) { //nolint
 		t.Setenv("LT_GITHUB_ACCESS_TOKEN", token.String())
