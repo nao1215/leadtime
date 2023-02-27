@@ -6,7 +6,7 @@ require (
 	github.com/caarlos0/env/v7 v7.0.0
 	github.com/charmbracelet/log v0.1.1
 	github.com/google/go-cmp v0.5.9
-	github.com/google/go-github/v50 v50.0.0
+	github.com/google/go-github/v50 v50.1.0
 	github.com/google/wire v0.5.0
 	github.com/shogo82148/pointer v1.2.0
 	github.com/spf13/cobra v1.6.1
