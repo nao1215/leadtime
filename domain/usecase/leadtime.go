@@ -10,6 +10,7 @@ import (
 	"github.com/nao1215/leadtime/domain/repository"
 	"github.com/nao1215/leadtime/infrastructure/github"
 	"github.com/shogo82148/pointer"
+	"golang.org/x/exp/slices"
 )
 
 // LeadTimeUsecase is use cases for stat leadtime
@@ -104,6 +105,39 @@ func (lt *LeadTime) RemoveOpenPR() {
 	prs := make([]*PullRequest, 0, len(lt.PRs))
 	for _, v := range lt.PRs {
 		if v.State == "open" {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
+}
+
+func (lt *LeadTime) RemovePRCreatedByBot() {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if v.User.IsBot() {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
+}
+
+func (lt *LeadTime) RemovePRs(removeTargetPRs []int) {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if slices.Contains(removeTargetPRs, v.Number) {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
+}
+
+func (lt *LeadTime) RemovePRsCreatedByTargetUser(target []string) {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if slices.Contains(target, pointer.StringValue(v.User.Name)) {
 			continue
 		}
 		prs = append(prs, v)

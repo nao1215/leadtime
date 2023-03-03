@@ -32,6 +32,10 @@ type User struct {
 	Bot bool
 }
 
+func (u *User) IsBot() bool {
+	return u.Bot
+}
+
 // Timestamp represents a time.
 type Timestamp struct {
 	Time time.Time

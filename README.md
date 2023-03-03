@@ -28,6 +28,25 @@ $ brew install nao1215/tap/leadtime
 ```
 
 ## How to use
+### Usage
+```
+Usage:
+  leadtime stat [flags]
+
+Examples:
+  LT_GITHUB_ACCESS_TOKEN=XXX leadtime stat --owner=nao1215 --repo=sqly
+
+Flags:
+  -B, --exclude-bot            Exclude Pull Requests created by bots
+  -P, --exclude-pr ints        Exclude specified Pull Requests (e.g. '-P 1,3,19')
+  -U, --exclude-user strings   Exclude Pull Requests created by specified user (e.g. '-U nao,alice')
+  -h, --help                   help for stat
+  -m, --markdown               Output markdown
+  -o, --owner string           Specify GitHub owner name
+  -r, --repo string            Specify GitHub repository name
+```
+
+### Execution example
 You need to set GitHub access token in environment variable "LT_GITHUB_ACCESS_TOKEN". If you want to check github.com/nao1215/sqly repository, you execute bellow.
 ```
 $ leadtime stat --owner=nao1215 --repo=sqly
@@ -70,11 +89,30 @@ PR      Author  Bot     LeadTime[min]   Title
  Lead Time(Median) = 66.50[min]
 ```
 
+### Exclude PRs
+- --exclude-bot option: Exclude Pull Requests created by bots
+  ```
+  leadtime stat --owner=nao1215 --repo=gup --exclude-bot
+  ```
+
+- --exclude-pr option: Exclude specified Pull Requests
+  ```
+  leadtime stat --owner=nao1215 --repo=gup --exclude-pr=1,3,11
+  ```
+
+- --exclude-user option: Exclude Pull Requests created by specified user
+  ```
+  leadtime stat --owner=nao1215 --repo=gup --exclude-user=nao,mio
+  ```
+
 ### markdown format output
 If you change output format to markdown, you use --markdown option. Markdown output sample is [here](doc/sample_leadtime.md).
 ```
 $ leadtime stat --owner=nao1215 --repo=gup --markdown
 ```
+
+If you use --markdown, leadtime command output lead time line graph, like this.
+![PR Lead Time](./doc/leadtime.png)
 
 ## Features to be added
 - [ ] CSV output format
@@ -82,7 +120,7 @@ $ leadtime stat --owner=nao1215 --repo=gup --markdown
 - [ ] Markdown file output
 - [ ] Output to file
 - [ ] Supports GitHub Actions
-- [ ] Exclude the bot's PR
+- [x] Exclude the bot's PR
 - [ ] faster by goroutine
 
 ## Contributing / Contact
