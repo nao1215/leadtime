@@ -28,7 +28,9 @@ leadtime calculates statistics for PRs already in Closed/Merged status.`,
 	statCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
 	statCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
 	statCmd.Flags().BoolP("markdown", "m", false, "Output markdown")
-	statCmd.Flags().BoolP("exclude-bot", "B", false, "Exclude PRs created by bots")
+	statCmd.Flags().BoolP("exclude-bot", "B", false, "Exclude Pull Requests created by bots")
+	statCmd.Flags().IntSliceP("exclude-pr", "P", []int{}, "Exclude specified Pull Requests (e.g. '-P 1,3,19')")
+	statCmd.Flags().StringSliceP("exclude-user", "U", []string{}, "Exclude Pull Requests created by specified user (e.g. '-U nao,alice')")
 
 	return statCmd
 }
@@ -42,6 +44,10 @@ type option struct {
 	markdown bool
 	// excludeBot is whether PRs created by bots exclude or not
 	excludeBot bool
+	// excludePRs is PR number list for exclusion
+	excludePRs []int
+	// excludeUsers is user list for exclusion
+	excludeUsers []string
 }
 
 func newOption(cmd *cobra.Command) (*option, error) {
@@ -64,11 +70,24 @@ func newOption(cmd *cobra.Command) (*option, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	excludePRs, err := cmd.Flags().GetIntSlice("exclude-pr")
+	if err != nil {
+		return nil, err
+	}
+
+	excludeUsers, err := cmd.Flags().GetStringSlice("exclude-user")
+	if err != nil {
+		return nil, err
+	}
+
 	return &option{
-		gitHubOwner: owner,
-		gitHubRepo:  repo,
-		markdown:    markdown,
-		excludeBot:  bot,
+		gitHubOwner:  owner,
+		gitHubRepo:   repo,
+		markdown:     markdown,
+		excludeBot:   bot,
+		excludePRs:   excludePRs,
+		excludeUsers: excludeUsers,
 	}, nil
 }
 
@@ -80,7 +99,7 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 
 	opt, err := newOption(cmd)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	input := &usecase.LeadTimeUsecaseStatInput{
@@ -100,6 +119,12 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 	if opt.excludeBot {
 		output.LeadTime.RemovePRCreatedByBot()
 	}
+	if len(opt.excludePRs) != 0 {
+		output.LeadTime.RemovePRs(opt.excludePRs)
+	}
+	if len(opt.excludeUsers) != 0 {
+		output.LeadTime.RemovePRsCreatedByTargetUser(opt.excludeUsers)
+	}
 
 	if opt.markdown {
 		if err := drawGraph(output.LeadTime); err != nil {
@@ -118,7 +143,7 @@ func drawGraph(lt *usecase.LeadTime) error {
 	p.X.Label.Text = "PR number"
 	p.Y.Label.Text = "Lead Time[min]"
 
-	data := plotter.XYs{}
+	data := make(plotter.XYs, 0, len(lt.PRs))
 	for _, v := range lt.PRs {
 		data = append(data, plotter.XY{
 			X: float64(v.Number),
@@ -131,6 +156,7 @@ func drawGraph(lt *usecase.LeadTime) error {
 		return err
 	}
 	p.Add(plotter.NewGrid())
+	p.Y.Max = float64(lt.Max()) + 100
 	line.Color = color.RGBA{R: 226, G: 45, B: 60, A: 255}
 	line.Width = vg.Points(1.5)
 	p.Add(line)
