@@ -28,8 +28,48 @@ leadtime calculates statistics for PRs already in Closed/Merged status.`,
 	statCmd.Flags().StringP("owner", "o", "", "Specify GitHub owner name")
 	statCmd.Flags().StringP("repo", "r", "", "Specify GitHub repository name")
 	statCmd.Flags().BoolP("markdown", "m", false, "Output markdown")
+	statCmd.Flags().BoolP("exclude-bot", "B", false, "Exclude PRs created by bots")
 
 	return statCmd
+}
+
+type option struct {
+	// gitHubOwner is owner name
+	gitHubOwner string
+	// gitHubRepo is github repository
+	gitHubRepo string
+	// markdown is markdown output mode flag
+	markdown bool
+	// excludeBot is whether PRs created by bots exclude or not
+	excludeBot bool
+}
+
+func newOption(cmd *cobra.Command) (*option, error) {
+	owner, err := cmd.Flags().GetString("owner")
+	if err != nil {
+		return nil, err
+	}
+
+	repo, err := cmd.Flags().GetString("repo")
+	if err != nil {
+		return nil, err
+	}
+
+	markdown, err := cmd.Flags().GetBool("markdown")
+	if err != nil {
+		return nil, err
+	}
+
+	bot, err := cmd.Flags().GetBool("exclude-bot")
+	if err != nil {
+		return nil, err
+	}
+	return &option{
+		gitHubOwner: owner,
+		gitHubRepo:  repo,
+		markdown:    markdown,
+		excludeBot:  bot,
+	}, nil
 }
 
 func stat(cmd *cobra.Command, args []string) error { //nolint
@@ -38,24 +78,14 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 		return err
 	}
 
-	owner, err := cmd.Flags().GetString("owner")
+	opt, err := newOption(cmd)
 	if err != nil {
-		return err
-	}
-
-	repo, err := cmd.Flags().GetString("repo")
-	if err != nil {
-		return err
-	}
-
-	markdown, err := cmd.Flags().GetBool("markdown")
-	if err != nil {
-		return err
+		return nil
 	}
 
 	input := &usecase.LeadTimeUsecaseStatInput{
-		Owner:      owner,
-		Repository: repo,
+		Owner:      opt.gitHubOwner,
+		Repository: opt.gitHubRepo,
 	}
 	if err := input.Valid(); err != nil {
 		return err
@@ -65,9 +95,13 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 	if err != nil {
 		return err
 	}
-	output.LeadTime.RemoveOpenPR()
 
-	if markdown {
+	output.LeadTime.RemoveOpenPR()
+	if opt.excludeBot {
+		output.LeadTime.RemovePRCreatedByBot()
+	}
+
+	if opt.markdown {
 		if err := drawGraph(output.LeadTime); err != nil {
 			return err
 		}

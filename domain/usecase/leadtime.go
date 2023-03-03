@@ -111,6 +111,17 @@ func (lt *LeadTime) RemoveOpenPR() {
 	lt.PRs = prs
 }
 
+func (lt *LeadTime) RemovePRCreatedByBot() {
+	prs := make([]*PullRequest, 0, len(lt.PRs))
+	for _, v := range lt.PRs {
+		if v.User.IsBot() {
+			continue
+		}
+		prs = append(prs, v)
+	}
+	lt.PRs = prs
+}
+
 func (lt *LeadTime) Min() int {
 	if len(lt.PRs) == 0 {
 		return 0
