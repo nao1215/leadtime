@@ -3,14 +3,12 @@ package usecase
 import (
 	"context"
 	"errors"
-	"sort"
 	"time"
 
 	"github.com/nao1215/leadtime/domain/model"
 	"github.com/nao1215/leadtime/domain/repository"
 	"github.com/nao1215/leadtime/infrastructure/github"
 	"github.com/shogo82148/pointer"
-	"golang.org/x/exp/slices"
 )
 
 // LeadTimeUsecase is use cases for stat leadtime
@@ -56,15 +54,15 @@ func NewLeadTimeUsecase(gitHubRepo repository.GitHubRepository) LeadTimeUsecase 
 
 // PullRequest is PR information for presentation layer.
 type PullRequest struct {
-	Number           int
-	State            string
-	Title            string
-	FirstCommitAt    time.Time
-	CreatedAt        time.Time
-	ClosedAt         time.Time
-	MergedAt         time.Time
-	User             *model.User
-	MergeTimeMinutes int
+	Number           int         `json:"number,omitempty"`
+	State            string      `json:"state,omitempty"`
+	Title            string      `json:"title,omitempty"`
+	FirstCommitAt    time.Time   `json:"first_commit_at,omitempty"`
+	CreatedAt        time.Time   `json:"created_at,omitempty"`
+	ClosedAt         time.Time   `json:"closed_at,omitempty"`
+	MergedAt         time.Time   `json:"merged_at,omitempty"`
+	User             *model.User `json:"user,omitempty"`
+	MergeTimeMinutes int         `json:"merge_time_minutes,omitempty"`
 }
 
 func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, firstCommitAt time.Time) *PullRequest {
@@ -98,129 +96,7 @@ func (p *PullRequest) toUsecasePullRequest(domainModelPR *model.PullRequest, fir
 }
 
 type LeadTime struct {
-	PRs []*PullRequest
-}
-
-func (lt *LeadTime) RemoveOpenPR() {
-	prs := make([]*PullRequest, 0, len(lt.PRs))
-	for _, v := range lt.PRs {
-		if v.State == "open" {
-			continue
-		}
-		prs = append(prs, v)
-	}
-	lt.PRs = prs
-}
-
-func (lt *LeadTime) RemovePRCreatedByBot() {
-	prs := make([]*PullRequest, 0, len(lt.PRs))
-	for _, v := range lt.PRs {
-		if v.User.IsBot() {
-			continue
-		}
-		prs = append(prs, v)
-	}
-	lt.PRs = prs
-}
-
-func (lt *LeadTime) RemovePRs(removeTargetPRs []int) {
-	prs := make([]*PullRequest, 0, len(lt.PRs))
-	for _, v := range lt.PRs {
-		if slices.Contains(removeTargetPRs, v.Number) {
-			continue
-		}
-		prs = append(prs, v)
-	}
-	lt.PRs = prs
-}
-
-func (lt *LeadTime) RemovePRsCreatedByTargetUser(target []string) {
-	prs := make([]*PullRequest, 0, len(lt.PRs))
-	for _, v := range lt.PRs {
-		if slices.Contains(target, pointer.StringValue(v.User.Name)) {
-			continue
-		}
-		prs = append(prs, v)
-	}
-	lt.PRs = prs
-}
-
-func (lt *LeadTime) Min() int {
-	if len(lt.PRs) == 0 {
-		return 0
-	}
-
-	min := lt.PRs[0].MergeTimeMinutes
-	for _, v := range lt.PRs[1:] {
-		if v.MergeTimeMinutes < min {
-			min = v.MergeTimeMinutes
-		}
-	}
-
-	return min
-}
-
-func (lt *LeadTime) Max() int {
-	if len(lt.PRs) == 0 {
-		return 0
-	}
-
-	max := lt.PRs[0].MergeTimeMinutes
-	for _, v := range lt.PRs[1:] {
-		if v.MergeTimeMinutes > max {
-			max = v.MergeTimeMinutes
-		}
-	}
-
-	return max
-}
-
-func (lt *LeadTime) Average() float64 {
-	if len(lt.PRs) == 0 {
-		return 0
-	}
-
-	sum := float64(0)
-	for _, v := range lt.PRs {
-		sum += float64(v.MergeTimeMinutes)
-	}
-
-	return sum / float64(len(lt.PRs))
-}
-
-func (lt *LeadTime) Sum() int {
-	if len(lt.PRs) == 0 {
-		return 0
-	}
-
-	sum := 0
-	for _, v := range lt.PRs {
-		sum += v.MergeTimeMinutes
-	}
-
-	return sum
-}
-
-func (lt *LeadTime) Median() float64 {
-	if len(lt.PRs) == 0 {
-		return 0
-	}
-
-	nums := make([]int, 0, len(lt.PRs))
-	for _, v := range lt.PRs {
-		nums = append(nums, v.MergeTimeMinutes)
-	}
-	sort.Ints(nums)
-
-	var median float64
-	mid := len(nums) / 2
-	if len(nums)%2 == 0 {
-		median = float64(nums[mid-1]+nums[mid]) / 2
-	} else {
-		median = float64(nums[mid])
-	}
-
-	return median
+	PullRequests []*PullRequest `json:"pull_requests,omitempty"`
 }
 
 // Stat return lead time statistics
@@ -250,7 +126,7 @@ func (lt *LTUsecase) Stat(ctx context.Context, input *LeadTimeUsecaseStatInput) 
 
 	return &LeadTimeUsecaseStatOutput{
 		LeadTime: &LeadTime{
-			PRs: pullReqs,
+			PullRequests: pullReqs,
 		},
 	}, nil
 }
