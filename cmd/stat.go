@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"image/color"
+	"io"
+	"os"
 
 	"github.com/nao1215/leadtime/di"
 	"github.com/nao1215/leadtime/domain/usecase"
@@ -133,7 +136,12 @@ func stat(cmd *cobra.Command, args []string) error { //nolint
 		outputMarkdown(output.LeadTime)
 		return nil
 	}
-	outputDefault(output.LeadTime)
+
+	lts := newLeadTimeStat(output.LeadTime)
+	if err := lts.json(os.Stdout); err != nil {
+		return err
+	}
+	//	outputDefault(output.LeadTime)
 
 	return nil
 }
@@ -194,14 +202,16 @@ func outputMarkdown(lt *usecase.LeadTime) {
 }
 
 func outputDefault(lt *usecase.LeadTime) {
-	fmt.Printf("PR\tAuthor\tBot\tLeadTime[min]\tTitle\n")
-	for _, v := range lt.PRs {
-		if v.User.Bot {
-			fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "yes", v.MergeTimeMinutes, v.Title)
-			continue
+	/*
+		fmt.Printf("PR\tAuthor\tBot\tLeadTime[min]\tTitle\n")
+		for _, v := range lt.PRs {
+			if v.User.Bot {
+				fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "yes", v.MergeTimeMinutes, v.Title)
+				continue
+			}
+			fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "no", v.MergeTimeMinutes, v.Title)
 		}
-		fmt.Printf("#%d\t%s\t%s\t%d\t%s\n", v.Number, pointer.StringValue(v.User.Name), "no", v.MergeTimeMinutes, v.Title)
-	}
+	*/
 
 	fmt.Println("")
 	fmt.Println("[statistics]")
@@ -211,4 +221,36 @@ func outputDefault(lt *usecase.LeadTime) {
 	fmt.Printf(" Lead Time(Sum) = %d[min]\n", lt.Sum())
 	fmt.Printf(" Lead Time(Ave) = %.2f[min]\n", lt.Average())
 	fmt.Printf(" Lead Time(Median) = %.2f[min]\n", lt.Median())
+}
+
+// LeadTimeStat is Lead time statistics.
+type LeadTimeStat struct {
+	TotalPR           int     `json:"total_pr,omitempty"`
+	LeadTimeMaximum   int     `json:"lead_time_maximum,omitempty"`
+	LeadTimeMinimum   int     `json:"lead_time_minimum,omitempty"`
+	LeadTimeSummation int     `json:"lead_time_summation,omitempty"`
+	LeadTimeAverage   float64 `json:"lead_time_average,omitempty"`
+	LeadTimeMedian    float64 `json:"lead_time_median,omitempty"`
+}
+
+func newLeadTimeStat(lt *usecase.LeadTime) *LeadTimeStat {
+	return &LeadTimeStat{
+		TotalPR:           len(lt.PRs),
+		LeadTimeMaximum:   lt.Max(),
+		LeadTimeMinimum:   lt.Min(),
+		LeadTimeSummation: lt.Sum(),
+		LeadTimeAverage:   lt.Average(),
+		LeadTimeMedian:    lt.Median(),
+	}
+}
+
+func (lts *LeadTimeStat) json(w io.Writer) error {
+	bytes, err := json.Marshal(lts)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(w, string(bytes))
+
+	return nil
 }
