@@ -271,17 +271,6 @@ type LeadTimeStat struct {
 	LeadTimeMedian    float64 `json:"lead_time_median,omitempty"`
 }
 
-func (lts *LeadTimeStat) json(w io.Writer) error {
-	bytes, err := json.Marshal(lts)
-	if err != nil {
-		return err
-	}
-
-	fmt.Fprintln(w, string(bytes))
-
-	return nil
-}
-
 type DetailLeadTimeStat struct {
 	LeadTimeStatistics *LeadTimeStat          `json:"lead_time_statistics,omitempty"`
 	PullRequests       []*usecase.PullRequest `json:"pull_requests,omitempty"`
@@ -295,7 +284,7 @@ func newDetailLeadTimeStat(lt *usecase.LeadTime) *DetailLeadTimeStat {
 }
 
 func (dlts *DetailLeadTimeStat) json(w io.Writer, all bool) error {
-	bytes := []byte{}
+	var bytes []byte
 	var err error
 	if all {
 		bytes, err = json.Marshal(dlts)

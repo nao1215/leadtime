@@ -56,11 +56,11 @@ func makeBashCompletionFileIfNeeded(cmd *cobra.Command) error {
 	}
 
 	if !file.IsDir(path) {
-		if err := os.MkdirAll(filepath.Dir(path), 0775); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 			return fmt.Errorf("can not create bash-completion file: %w", err)
 		}
 	}
-	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0664)
+	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return fmt.Errorf("can not open .bash_completion: %w", err)
 	}
@@ -84,7 +84,7 @@ func makeFishCompletionFileIfNeeded(cmd *cobra.Command) error {
 	}
 
 	path := fishCompletionFilePath()
-	if err := os.MkdirAll(filepath.Dir(path), 0775); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return fmt.Errorf("can not create fish-completion file: %w", err)
 	}
 
@@ -103,7 +103,7 @@ func makeZshCompletionFileIfNeeded(cmd *cobra.Command) error {
 	}
 
 	path := zshCompletionFilePath()
-	if err := os.MkdirAll(filepath.Dir(path), 0775); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return fmt.Errorf("can not create zsh-completion file: %w", err)
 	}
 
@@ -128,7 +128,7 @@ autoload -Uz compinit && compinit -i
 `
 	zshrcPath := zshrcPath()
 	if !file.IsFile(zshrcPath) {
-		fp, err := os.OpenFile(zshrcPath, os.O_RDWR|os.O_CREATE, 0664)
+		fp, err := os.OpenFile(zshrcPath, os.O_RDWR|os.O_CREATE, 0600)
 		if err != nil {
 			return fmt.Errorf("can not open .zshrc: %w", err)
 		}
@@ -152,7 +152,7 @@ autoload -Uz compinit && compinit -i
 		return nil
 	}
 
-	fp, err := os.OpenFile(zshrcPath, os.O_RDWR|os.O_APPEND, 0664)
+	fp, err := os.OpenFile(zshrcPath, os.O_RDWR|os.O_APPEND, 0600)
 	if err != nil {
 		return fmt.Errorf("can not open .zshrc: %w", err)
 	}
@@ -207,7 +207,7 @@ func isSameFishCompletionFile(cmd *cobra.Command) bool {
 		return false
 	}
 
-	if bytes.Compare(currentFishCompletion.Bytes(), fishCompletionInLocal) != 0 {
+	if !bytes.Equal(currentFishCompletion.Bytes(), fishCompletionInLocal) {
 		return false
 	}
 	return true
@@ -229,7 +229,7 @@ func isSameZshCompletionFile(cmd *cobra.Command) bool {
 		return false
 	}
 
-	if bytes.Compare(currentZshCompletion.Bytes(), zshCompletionInLocal) != 0 {
+	if !bytes.Equal(currentZshCompletion.Bytes(), zshCompletionInLocal) {
 		return false
 	}
 	return true
