@@ -3,7 +3,7 @@ module github.com/nao1215/leadtime
 go 1.20
 
 require (
-	github.com/caarlos0/env/v7 v7.0.0
+	github.com/caarlos0/env/v7 v7.1.0
 	github.com/charmbracelet/log v0.1.2
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v50 v50.1.0
