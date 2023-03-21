@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/wire v0.5.0
-	github.com/nao1215/gorky v0.2.0
+	github.com/nao1215/gorky v0.2.1
 	github.com/shogo82148/pointer v1.2.0
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91
