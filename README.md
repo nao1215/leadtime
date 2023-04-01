@@ -5,7 +5,7 @@
 [![LinuxUnitTest](https://github.com/nao1215/leadtime/actions/workflows/linux_test.yml/badge.svg)](https://github.com/nao1215/leadtime/actions/workflows/linux_test.yml)
 [![MacUnitTest](https://github.com/nao1215/leadtime/actions/workflows/mac_test.yml/badge.svg)](https://github.com/nao1215/leadtime/actions/workflows/mac_test.yml)
 [![WindowsUnitTest](https://github.com/nao1215/leadtime/actions/workflows/windows_test.yml/badge.svg)](https://github.com/nao1215/leadtime/actions/workflows/windows_test.yml)
-# leadtime - calculate PR lead time statistics on GitHub
+# leadtime - calculate GitHub PR lead time statistics
 ```
 |------------- lead time -------------|
 |               |--- time to merge ---|
