@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/caarlos0/env/v7 v7.1.0
-	github.com/charmbracelet/log v0.2.2
+	github.com/charmbracelet/log v0.2.3
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/wire v0.5.0
@@ -35,7 +35,7 @@ require (
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
-	github.com/muesli/termenv v0.15.1 // indirect
+	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
