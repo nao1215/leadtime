@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/log v0.2.2
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v50 v50.2.0
-	github.com/google/wire v0.5.0
+	github.com/google/wire v0.6.0
 	github.com/nao1215/gorky v0.2.1
 	github.com/shogo82148/pointer v1.2.0
 	github.com/spf13/cobra v1.7.0
@@ -38,11 +38,11 @@ require (
 	github.com/muesli/termenv v0.15.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/image v0.7.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
