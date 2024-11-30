@@ -9,7 +9,7 @@ require (
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/wire v0.5.0
 	github.com/nao1215/gorky v0.2.1
-	github.com/shogo82148/pointer v1.2.0
+	github.com/shogo82148/pointer v1.3.0
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
 	golang.org/x/oauth2 v0.24.0
