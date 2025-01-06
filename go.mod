@@ -12,7 +12,7 @@ require (
 	github.com/shogo82148/pointer v1.3.0
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.25.0
 	gonum.org/v1/plot v0.13.0
 )
 
