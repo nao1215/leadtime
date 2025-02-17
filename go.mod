@@ -10,7 +10,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/nao1215/gorky v0.2.1
 	github.com/shogo82148/pointer v1.3.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/oauth2 v0.26.0
 	gonum.org/v1/plot v0.13.0
@@ -36,7 +36,7 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/image v0.7.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
