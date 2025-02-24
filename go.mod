@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/caarlos0/env/v7 v7.1.0
 	github.com/charmbracelet/log v0.4.0
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-github/v50 v50.2.0
 	github.com/google/wire v0.6.0
 	github.com/nao1215/gorky v0.2.1
